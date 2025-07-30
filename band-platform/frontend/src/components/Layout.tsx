@@ -9,17 +9,19 @@ import {
   MusicalNoteIcon,
   ListBulletIcon,
   UserGroupIcon,
+  Cog6ToothIcon,
   MoonIcon,
   SunIcon,
   Bars3Icon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import { 
+import {
   HomeIcon as HomeIconSolid,
   DocumentTextIcon as DocumentTextIconSolid,
   MusicalNoteIcon as MusicalNoteIconSolid,
   ListBulletIcon as ListBulletIconSolid,
   UserGroupIcon as UserGroupIconSolid,
+  Cog6ToothIcon as Cog6ToothIconSolid,
 } from '@heroicons/react/24/solid';
 
 interface LayoutProps {
@@ -39,20 +41,27 @@ const navigation: NavItem[] = [
   { name: 'Audio', href: '/audio', icon: MusicalNoteIcon, iconSolid: MusicalNoteIconSolid },
   { name: 'Setlists', href: '/setlists', icon: ListBulletIcon, iconSolid: ListBulletIconSolid },
   { name: 'Band', href: '/band', icon: UserGroupIcon, iconSolid: UserGroupIconSolid },
+  { name: 'Settings', href: '/settings', icon: Cog6ToothIcon, iconSolid: Cog6ToothIconSolid },
 ];
 
 export default function Layout({ children }: LayoutProps) {
   const pathname = usePathname();
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [scale, setScale] = useState(1);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
 
-  // Initialize theme from localStorage or system preference
+  // Initialize theme and scale from localStorage or system preference
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
+    const savedScale = localStorage.getItem('scale');
     if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       setIsDarkMode(true);
       document.documentElement.classList.add('dark');
+    }
+    if (savedScale) {
+      setScale(parseFloat(savedScale));
+      document.documentElement.style.setProperty('--scale', savedScale);
     }
   }, []);
 
@@ -66,6 +75,12 @@ export default function Layout({ children }: LayoutProps) {
       localStorage.setItem('theme', 'light');
     }
   }, [isDarkMode]);
+
+  // Update interface scale
+  useEffect(() => {
+    document.documentElement.style.setProperty('--scale', scale.toString());
+    localStorage.setItem('scale', scale.toString());
+  }, [scale]);
 
   // Monitor online/offline status
   useEffect(() => {

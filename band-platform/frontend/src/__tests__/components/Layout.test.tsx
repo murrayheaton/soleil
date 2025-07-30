@@ -55,6 +55,7 @@ describe('Layout', () => {
     expect(screen.getByText('Audio')).toBeInTheDocument()
     expect(screen.getByText('Setlists')).toBeInTheDocument()
     expect(screen.getByText('Band')).toBeInTheDocument()
+    expect(screen.getByText('Settings')).toBeInTheDocument()
   })
 
   it('renders children content', () => {
@@ -91,6 +92,7 @@ describe('Layout', () => {
     expect(screen.getAllByText('Charts')).toHaveLength(2)
     expect(screen.getAllByText('Audio')).toHaveLength(2)
     expect(screen.getAllByText('Setlists')).toHaveLength(2)
+    expect(screen.getAllByText('Settings')).toHaveLength(2)
   })
 
   it('toggles dark mode when button is clicked', async () => {
