@@ -50,11 +50,13 @@ export default function Layout({ children }: LayoutProps) {
   const [scale, setScale] = useState(1);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
+  const [offlineMode, setOfflineMode] = useState(false);
 
-  // Initialize theme and scale from localStorage or system preference
+  // Initialize theme, scale, and offline mode from localStorage or system preference
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     const savedScale = localStorage.getItem('scale');
+    const savedOffline = localStorage.getItem('offlineMode');
     if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       setIsDarkMode(true);
       document.documentElement.classList.add('dark');
@@ -62,6 +64,10 @@ export default function Layout({ children }: LayoutProps) {
     if (savedScale) {
       setScale(parseFloat(savedScale));
       document.documentElement.style.setProperty('--scale', savedScale);
+    }
+    if (savedOffline === 'true') {
+      setOfflineMode(true);
+      setIsOnline(false);
     }
   }, []);
 
@@ -84,20 +90,28 @@ export default function Layout({ children }: LayoutProps) {
 
   // Monitor online/offline status
   useEffect(() => {
+    if (offlineMode) {
+      setIsOnline(false);
+      return;
+    }
+
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Check initial status
     setIsOnline(navigator.onLine);
 
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, []);
+  }, [offlineMode]);
+
+  useEffect(() => {
+    localStorage.setItem('offlineMode', offlineMode ? 'true' : 'false');
+  }, [offlineMode]);
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);

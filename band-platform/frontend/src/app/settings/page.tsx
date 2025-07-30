@@ -4,15 +4,20 @@ import { useState, useEffect } from 'react';
 export default function SettingsPage() {
   const [darkMode, setDarkMode] = useState(false);
   const [scale, setScale] = useState('1');
+  const [offlineMode, setOfflineMode] = useState(false);
 
   useEffect(() => {
     const theme = localStorage.getItem('theme');
     const savedScale = localStorage.getItem('scale');
+    const savedOffline = localStorage.getItem('offlineMode');
     if (theme === 'dark') {
       setDarkMode(true);
     }
     if (savedScale) {
       setScale(savedScale);
+    }
+    if (savedOffline === 'true') {
+      setOfflineMode(true);
     }
   }, []);
 
@@ -30,6 +35,10 @@ export default function SettingsPage() {
     document.documentElement.style.setProperty('--scale', scale);
     localStorage.setItem('scale', scale);
   }, [scale]);
+
+  useEffect(() => {
+    localStorage.setItem('offlineMode', offlineMode ? 'true' : 'false');
+  }, [offlineMode]);
 
   return (
     <div className="space-y-6">
@@ -57,6 +66,15 @@ export default function SettingsPage() {
           <option value="1">Medium</option>
           <option value="1.25">Large</option>
         </select>
+      </div>
+      <div className="flex items-center space-x-2">
+        <input
+          id="offlineMode"
+          type="checkbox"
+          checked={offlineMode}
+          onChange={() => setOfflineMode(!offlineMode)}
+        />
+        <label htmlFor="offlineMode">Offline Mode</label>
       </div>
     </div>
   );
