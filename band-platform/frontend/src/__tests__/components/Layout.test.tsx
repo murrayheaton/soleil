@@ -55,6 +55,7 @@ describe('Layout', () => {
     expect(screen.getByText('Audio')).toBeInTheDocument()
     expect(screen.getByText('Setlists')).toBeInTheDocument()
     expect(screen.getByText('Band')).toBeInTheDocument()
+    expect(screen.getByText('Settings')).toBeInTheDocument()
   })
 
   it('renders children content', () => {
@@ -91,6 +92,25 @@ describe('Layout', () => {
     expect(screen.getAllByText('Charts')).toHaveLength(2)
     expect(screen.getAllByText('Audio')).toHaveLength(2)
     expect(screen.getAllByText('Setlists')).toHaveLength(2)
+    expect(screen.getAllByText('Settings')).toHaveLength(2)
+  })
+
+  it('restores offline mode from localStorage', () => {
+    Object.defineProperty(window, 'localStorage', {
+      value: {
+        ...window.localStorage,
+        getItem: jest.fn(key => (key === 'offlineMode' ? 'true' : null)),
+      },
+      writable: true,
+    })
+
+    render(
+      <Layout>
+        <div>Test Content</div>
+      </Layout>
+    )
+
+    expect(screen.getAllByText('Offline')).toHaveLength(2)
   })
 
   it('toggles dark mode when button is clicked', async () => {
