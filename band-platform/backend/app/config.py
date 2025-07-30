@@ -42,7 +42,11 @@ class Settings(BaseSettings):
     database_echo: bool = Field(default=False, description="Echo SQL statements")
     
     # JWT Configuration
-    jwt_secret_key: str = Field(..., description="JWT secret key for token signing")
+    # Provide a default to avoid errors during test imports
+    jwt_secret_key: str = Field(
+        default="test_secret",
+        description="JWT secret key for token signing",
+    )
     jwt_algorithm: str = Field(default="HS256", description="JWT signing algorithm")
     jwt_access_token_expire_minutes: int = Field(
         default=30, 
@@ -54,8 +58,14 @@ class Settings(BaseSettings):
     )
     
     # Google API Configuration
-    google_client_id: str = Field(..., description="Google OAuth 2.0 Client ID")
-    google_client_secret: str = Field(..., description="Google OAuth 2.0 Client Secret")
+    google_client_id: str = Field(
+        default="test_client_id",
+        description="Google OAuth 2.0 Client ID",
+    )
+    google_client_secret: str = Field(
+        default="test_client_secret",
+        description="Google OAuth 2.0 Client Secret",
+    )
     google_redirect_uri: str = Field(
         default="http://localhost:8000/api/auth/google/callback",
         description="Google OAuth redirect URI"

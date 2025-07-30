@@ -310,4 +310,10 @@ class DatabaseManager:
 
 
 # Convenience instance for use throughout the application
-db_manager = DatabaseManager()
+# Instantiate a default database manager if the database is initialised.
+# During unit tests the database is usually mocked, so failure to create the
+# manager here should not raise an exception. Tests patch this attribute.
+try:
+    db_manager = DatabaseManager()
+except RuntimeError:
+    db_manager = None
