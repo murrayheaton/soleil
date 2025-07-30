@@ -143,8 +143,19 @@ export default function BandPlatform() {
   };
 
   const handleGoogleSignIn = () => {
-    // Direct Google OAuth sign-in
-    const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=360999037847-1kkj607098goc38mvurbk91beukr3egn.apps.googleusercontent.com&response_type=code&scope=https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/userinfo.email&redirect_uri=http://localhost:8000/api/auth/google/callback&access_type=offline&prompt=consent`;
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!clientId || !apiUrl) {
+      console.error('Google OAuth environment variables are not set');
+      return;
+    }
+
+    const redirectUri = `${apiUrl}/api/auth/google/callback`;
+    const authUrl =
+      `https://accounts.google.com/o/oauth2/auth?client_id=${clientId}` +
+      `&response_type=code&scope=https://www.googleapis.com/auth/drive.readonly` +
+      ` https://www.googleapis.com/auth/userinfo.email&redirect_uri=${encodeURIComponent(redirectUri)}` +
+      `&access_type=offline&prompt=consent`;
     window.location.href = authUrl;
   };
 
