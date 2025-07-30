@@ -42,7 +42,7 @@ docker-compose up
 ## 🏗️ Architecture
 
 - **Backend**: FastAPI (Python) with async support
-- **Frontend**: Next.js 14 with TypeScript and Tailwind CSS
+- **Frontend**: Next.js 15 with TypeScript and Tailwind CSS
 - **Database**: PostgreSQL
 - **File Storage**: Google Drive integration
 - **Authentication**: JWT tokens with Google OAuth planned
