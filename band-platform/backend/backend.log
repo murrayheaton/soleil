@@ -238,3 +238,8 @@ INFO:     Finished server process [25421]
 INFO:     Started server process [42073]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [42073]
+INFO:     Stopping reloader process [25409]
