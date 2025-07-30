@@ -27,13 +27,17 @@ python -m venv venv_linux
 source venv_linux/bin/activate  # On Windows: venv_linux\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env
-# Edit .env with your configuration
+# Edit .env with your configuration (Google OAuth and JWT settings)
 
 # Frontend setup
 cd ../frontend
 npm install
 cp .env.example .env.local
-# Edit .env.local with your configuration
+# Edit .env.local with your configuration (frontend API endpoints)
+
+The `.env` file requires your Google OAuth credentials and a `JWT_SECRET_KEY` for
+token signing. The frontend `.env.local` file exposes `NEXT_PUBLIC_API_URL` and
+`NEXT_PUBLIC_WS_URL` so the UI can communicate with the backend.
 
 # Run with Docker Compose (from project root)
 docker-compose up

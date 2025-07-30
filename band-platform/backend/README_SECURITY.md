@@ -14,6 +14,7 @@ For security reasons, OAuth credentials and API keys are not included in the rep
    - `GOOGLE_CLIENT_SECRET`: Your Google OAuth2 client secret
    - `GOOGLE_REDIRECT_URI`: Should be `http://localhost:8000/api/auth/google/callback` for local development
    - `GOOGLE_DRIVE_SOURCE_FOLDER_ID`: The ID of your Google Drive folder containing charts
+   - `JWT_SECRET_KEY`: Secret key for signing JWT tokens
 
 ## Files Not in Repository
 

@@ -147,3 +147,11 @@ At the end of this session, two final important system improvements were impleme
 **Platform Status**: Production Ready
 **Documentation System**: Fully chronological with prompt tracking
 **Next Session**: Will continue from production-ready platform with new documentation standards
+
+## Session 4 - July 31, 2025
+
+### What's New
+- Added missing `.env.example` for the frontend with `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_WS_URL` variables.
+- Fixed backend `.env.example` and included `JWT_SECRET_KEY` placeholder.
+- Updated documentation to explain new environment variables.
+- Marked the open task as complete in `TASK.md`.

@@ -7,8 +7,8 @@ for real-time setlist management and gig scheduling with proper timezone support
 
 import asyncio
 import logging
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Tuple
+from datetime import datetime, timezone
+from typing import Dict, List, Optional, Any
 from contextlib import asynccontextmanager
 
 from google.auth.transport.requests import Request
@@ -18,7 +18,6 @@ from googleapiclient.errors import HttpError
 import backoff
 import pytz
 
-from ..config import settings
 
 logger = logging.getLogger(__name__)
 

@@ -3,8 +3,7 @@ Google OAuth2 authentication endpoints.
 Allows admin to authenticate once, then all users benefit from the connection.
 """
 
-from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import RedirectResponse
+from fastapi import APIRouter, HTTPException
 import logging
 
 from ..services.google_drive_oauth import drive_oauth_service
