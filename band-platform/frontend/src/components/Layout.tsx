@@ -3,6 +3,7 @@
 import React, { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   HomeIcon,
   DocumentTextIcon,
@@ -46,6 +47,12 @@ const navigation: NavItem[] = [
 
 export default function Layout({ children }: LayoutProps) {
   const pathname = usePathname();
+  // Short fade transition to keep animations smooth (~60fps)
+  const variants = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1, transition: { duration: 0.25 } },
+    exit: { opacity: 0, transition: { duration: 0.25 } },
+  };
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [scale, setScale] = useState(1);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -187,7 +194,18 @@ export default function Layout({ children }: LayoutProps) {
       {/* Main Content */}
       <main className="flex-1 pb-20 md:pb-0" style={{backgroundColor: '#171717'}}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
-          {children}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={pathname}
+              variants={variants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              style={{ willChange: 'opacity' }}
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </main>
 
