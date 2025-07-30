@@ -61,7 +61,7 @@ async def list_available_instruments() -> Dict[str, Dict[str, str]]:
 async def list_available_roles() -> Dict[str, Dict[str, str]]:
     """List all available user roles."""
     roles_info = {
-        UserRole.MUSICIAN: {
+        UserRole.MEMBER: {
             "name": "Musician",
             "description": "Regular band member with access to their instrument-specific content",
             "permissions": [
@@ -70,7 +70,7 @@ async def list_available_roles() -> Dict[str, Dict[str, str]]:
                 "Update own instruments",
             ],
         },
-        UserRole.BAND_LEADER: {
+        UserRole.LEADER: {
             "name": "Band Leader",
             "description": "Band leader with administrative privileges for the band",
             "permissions": [
@@ -93,5 +93,5 @@ async def list_available_roles() -> Dict[str, Dict[str, str]]:
     }
     return {
         "roles": roles_info,
-        "role_hierarchy": [UserRole.MUSICIAN, UserRole.BAND_LEADER, UserRole.ADMIN],
+        "role_hierarchy": [UserRole.MEMBER, UserRole.LEADER, UserRole.ADMIN],
     }
