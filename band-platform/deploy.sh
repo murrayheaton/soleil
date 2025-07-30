@@ -49,11 +49,13 @@ echo -e "${YELLOW}🔧 Updating nginx configuration...${NC}"
 sed -i.bak "s/YOUR_DOMAIN.com/$DOMAIN/g" nginx/nginx.conf
 echo -e "${GREEN}✓ Nginx configuration updated${NC}"
 
-# Update environment files with domain
-echo -e "${YELLOW}🔧 Updating environment files...${NC}"
+# Create and update environment files with domain
+echo -e "${YELLOW}🔧 Creating and updating environment files...${NC}"
+cp backend/.env.production.template backend/.env.production
+cp frontend/.env.production.template frontend/.env.production
 sed -i.bak "s/YOUR_DOMAIN.com/$DOMAIN/g" backend/.env.production
 sed -i.bak "s/YOUR_DOMAIN.com/$DOMAIN/g" frontend/.env.production
-echo -e "${GREEN}✓ Environment files updated${NC}"
+echo -e "${GREEN}✓ Environment files created and updated${NC}"
 
 # Build and start containers
 echo -e "${YELLOW}🐳 Building and starting Docker containers...${NC}"
