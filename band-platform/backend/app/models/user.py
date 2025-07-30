@@ -118,7 +118,7 @@ class User(Base):
     @property
     def is_admin(self) -> bool:
         """Check if user has admin privileges."""
-        return self.role in [UserRole.ADMIN, UserRole.BAND_LEADER]
+        return self.role in [UserRole.ADMIN, UserRole.LEADER]
     
     def get_preferred_keys(self) -> List[str]:
         """

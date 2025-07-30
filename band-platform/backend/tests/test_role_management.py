@@ -79,16 +79,16 @@ class TestRoleUpdate:
     def test_valid_role_update(self):
         """Test creating valid role update."""
         update = RoleUpdate(
-            role=UserRole.BAND_LEADER,
+            role=UserRole.LEADER,
             reorganize_folders=True
         )
         
-        assert update.role == UserRole.BAND_LEADER
+        assert update.role == UserRole.LEADER
         assert update.reorganize_folders is True
     
     def test_default_reorganize_folders(self):
         """Test default value for reorganize_folders."""
-        update = RoleUpdate(role=UserRole.MUSICIAN)
+        update = RoleUpdate(role=UserRole.MEMBER)
         
         assert update.reorganize_folders is False
 
@@ -388,8 +388,8 @@ class TestRoleManagementEndpoints:
         
         # Should have all user roles
         roles = data["roles"]
-        assert UserRole.MUSICIAN in roles
-        assert UserRole.BAND_LEADER in roles
+        assert UserRole.MEMBER in roles
+        assert UserRole.LEADER in roles
         assert UserRole.ADMIN in roles
         
         # Each role should have description and permissions
