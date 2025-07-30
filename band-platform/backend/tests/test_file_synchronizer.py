@@ -457,7 +457,13 @@ class TestScheduleSyncForUsers:
     async def test_schedule_sync_returns_job_id(self):
         """Test that scheduling returns a job ID."""
         mock_synchronizer = Mock(spec=FileSynchronizer)
-        mock_synchronizer.sync_source_to_user_folders = AsyncMock()
+
+        event = asyncio.Event()
+
+        async def _fake_sync(*args, **kwargs):
+            event.set()
+
+        mock_synchronizer.sync_source_to_user_folders = AsyncMock(side_effect=_fake_sync)
         
         job_id = await schedule_sync_for_users(
             user_ids=[1, 2],
@@ -470,8 +476,7 @@ class TestScheduleSyncForUsers:
         assert isinstance(job_id, str)
         assert len(job_id) == 36  # UUID format
         
-        # Give the async task a moment to start
-        await asyncio.sleep(0.1)
+        await asyncio.wait_for(event.wait(), timeout=0.5)
         
         # Should call sync method
         mock_synchronizer.sync_source_to_user_folders.assert_called_once_with(
@@ -483,25 +488,30 @@ class TestScheduleSyncForUsers:
     async def test_schedule_sync_with_delay(self):
         """Test scheduling with delay."""
         mock_synchronizer = Mock(spec=FileSynchronizer)
-        mock_synchronizer.sync_source_to_user_folders = AsyncMock()
-        
+
+        event = asyncio.Event()
+        call_time = {}
+
+        async def _fake_sync(*args, **kwargs):
+            call_time['time'] = datetime.now()
+            event.set()
+
+        mock_synchronizer.sync_source_to_user_folders = AsyncMock(side_effect=_fake_sync)
+
         start_time = datetime.now()
-        
+
         job_id = await schedule_sync_for_users(
             user_ids=[1],
-            source_folder_id="source_123", 
+            source_folder_id="source_123",
             synchronizer=mock_synchronizer,
             delay_seconds=0.1  # Small delay for testing
         )
-        
-        # Give time for delay and execution
-        await asyncio.sleep(0.2)
-        
-        # Should have been delayed
-        elapsed = (datetime.now() - start_time).total_seconds()
+
+        await asyncio.wait_for(event.wait(), timeout=0.5)
+
+        elapsed = (call_time['time'] - start_time).total_seconds()
         assert elapsed >= 0.1
-        
-        # Should still call sync method
+
         mock_synchronizer.sync_source_to_user_folders.assert_called_once()
 
 
