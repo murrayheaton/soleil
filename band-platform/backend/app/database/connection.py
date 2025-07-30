@@ -80,9 +80,9 @@ def create_database_engine() -> AsyncEngine:
     
     # Add event listeners for connection lifecycle
     @event.listens_for(engine.sync_engine, "connect")
-    def set_sqlite_pragma(dbapi_connection, connection_record):
+    def set_postgresql_settings(dbapi_connection, connection_record):
         """Set PostgreSQL-specific connection parameters."""
-        # This is for PostgreSQL, not SQLite
+        # This function is intentionally left blank for now
         pass
     
     @event.listens_for(engine.sync_engine, "checkout")
@@ -314,6 +314,6 @@ class DatabaseManager:
 # During unit tests the database is usually mocked, so failure to create the
 # manager here should not raise an exception. Tests patch this attribute.
 try:
-    db_manager = DatabaseManager()
+    db_manager: Optional[DatabaseManager] = DatabaseManager()
 except RuntimeError:
     db_manager = None

@@ -6,6 +6,7 @@ This module provides shared test fixtures and configuration for all test modules
 
 import pytest
 import asyncio
+from contextlib import asynccontextmanager
 from unittest.mock import Mock, AsyncMock, patch
 from typing import AsyncGenerator
 
@@ -20,9 +21,16 @@ def mock_database():
         mock_manager.engine = mock_engine
         mock_manager.session_factory = Mock()
         mock_db_manager.return_value = mock_manager
-        
-        # Also patch the DatabaseManager class
-        with patch('app.database.connection.DatabaseManager'):
+
+        # Also patch the DatabaseManager class and session helper
+        with patch('app.database.connection.DatabaseManager'), patch(
+            'app.database.connection.get_db_session'
+        ) as mock_get_db_session:
+            @asynccontextmanager
+            async def _session_ctx() -> AsyncGenerator[AsyncMock, None]:
+                yield AsyncMock()
+
+            mock_get_db_session.side_effect = _session_ctx
             yield
 
 
