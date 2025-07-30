@@ -30,6 +30,11 @@ cp .env.example .env.local
 
 `.env.local` is gitignored and will be loaded automatically by Next.js during development.
 
+Required variables include:
+
+- `NEXT_PUBLIC_API_URL` - Base URL of the backend API (e.g. `http://localhost:8000`).
+- `NEXT_PUBLIC_GOOGLE_CLIENT_ID` - Google OAuth client ID used for sign in.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
