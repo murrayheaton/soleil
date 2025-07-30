@@ -18,9 +18,11 @@ from ..database.connection import Base
 
 class UserRole(str, Enum):
     """User roles in the band platform."""
-    MUSICIAN = "musician"
+    MEMBER = "musician"
+    MUSICIAN = MEMBER
+    LEADER = "band_leader"
+    BAND_LEADER = LEADER
     ADMIN = "admin"
-    BAND_LEADER = "band_leader"
 
 
 class InstrumentFamily(str, Enum):
@@ -91,7 +93,7 @@ class User(Base):
     
     # Band Association
     band_id = Column(Integer, ForeignKey("bands.id"), nullable=False, index=True)
-    role = Column(String(50), default=UserRole.MUSICIAN, nullable=False, index=True)
+    role = Column(String(50), default=UserRole.MEMBER, nullable=False, index=True)
     
     # Musical Information
     instruments = Column(JSON, nullable=False, default=list)  # List of instrument names
@@ -239,7 +241,7 @@ class UserBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255, description="User full name")
     instruments: List[str] = Field(default=[], description="List of instruments the user plays")
     primary_instrument: Optional[str] = Field(None, description="Primary instrument")
-    role: UserRole = Field(default=UserRole.MUSICIAN, description="User role in the band")
+    role: UserRole = Field(default=UserRole.MEMBER, description="User role in the band")
 
 
 class UserCreate(UserBase):
