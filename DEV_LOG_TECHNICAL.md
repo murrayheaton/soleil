@@ -6,7 +6,7 @@
 - Forked from context-engineering-intro template
 - Project structure:
   - `/band-platform/backend/` - FastAPI application with existing scaffolding
-  - `/band-platform/frontend/` - Next.js 14 with TypeScript and Tailwind
+  - `/band-platform/frontend/` - Next.js 15 with TypeScript and Tailwind
   - Docker Compose configuration for containerized development
 
 ### Architecture Baseline
