@@ -6,24 +6,11 @@ import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   HomeIcon,
-  DocumentTextIcon,
   MusicalNoteIcon,
-  ListBulletIcon,
-  UserGroupIcon,
+  CalendarDaysIcon,
   Cog6ToothIcon,
-  MoonIcon,
-  SunIcon,
-  Bars3Icon,
-  XMarkIcon,
+  UserCircleIcon,
 } from '@heroicons/react/24/outline';
-import {
-  HomeIcon as HomeIconSolid,
-  DocumentTextIcon as DocumentTextIconSolid,
-  MusicalNoteIcon as MusicalNoteIconSolid,
-  ListBulletIcon as ListBulletIconSolid,
-  UserGroupIcon as UserGroupIconSolid,
-  Cog6ToothIcon as Cog6ToothIconSolid,
-} from '@heroicons/react/24/solid';
 
 interface LayoutProps {
   children: ReactNode;
@@ -33,16 +20,14 @@ interface NavItem {
   name: string;
   href: string;
   icon: React.ForwardRefExoticComponent<React.SVGProps<SVGSVGElement>>;
-  iconSolid: React.ForwardRefExoticComponent<React.SVGProps<SVGSVGElement>>;
 }
 
 const navigation: NavItem[] = [
-  { name: 'Dashboard', href: '/', icon: HomeIcon, iconSolid: HomeIconSolid },
-  { name: 'Charts', href: '/charts', icon: DocumentTextIcon, iconSolid: DocumentTextIconSolid },
-  { name: 'Audio', href: '/audio', icon: MusicalNoteIcon, iconSolid: MusicalNoteIconSolid },
-  { name: 'Setlists', href: '/setlists', icon: ListBulletIcon, iconSolid: ListBulletIconSolid },
-  { name: 'Band', href: '/band', icon: UserGroupIcon, iconSolid: UserGroupIconSolid },
-  { name: 'Settings', href: '/settings', icon: Cog6ToothIcon, iconSolid: Cog6ToothIconSolid },
+  { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
+  { name: 'Repertoire', href: '/repertoire', icon: MusicalNoteIcon },
+  { name: 'Upcoming Gigs', href: '/upcoming-gigs', icon: CalendarDaysIcon },
+  { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
+  { name: 'Profile', href: '/profile', icon: UserCircleIcon },
 ];
 
 export default function Layout({ children }: LayoutProps) {
@@ -53,47 +38,18 @@ export default function Layout({ children }: LayoutProps) {
     animate: { opacity: 1, transition: { duration: 0.25 } },
     exit: { opacity: 0, transition: { duration: 0.25 } },
   };
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [scale, setScale] = useState(1);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
   const [offlineMode, setOfflineMode] = useState(false);
 
-  // Initialize theme, scale, and offline mode from localStorage or system preference
+  // Initialize offline mode from localStorage
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    const savedScale = localStorage.getItem('scale');
     const savedOffline = localStorage.getItem('offlineMode');
-    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      setIsDarkMode(true);
-      document.documentElement.classList.add('dark');
-    }
-    if (savedScale) {
-      setScale(parseFloat(savedScale));
-      document.documentElement.style.setProperty('--scale', savedScale);
-    }
     if (savedOffline === 'true') {
       setOfflineMode(true);
       setIsOnline(false);
     }
   }, []);
-
-  // Update theme class and localStorage
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [isDarkMode]);
-
-  // Update interface scale
-  useEffect(() => {
-    document.documentElement.style.setProperty('--scale', scale.toString());
-    localStorage.setItem('scale', scale.toString());
-  }, [scale]);
 
   // Monitor online/offline status
   useEffect(() => {
@@ -120,95 +76,125 @@ export default function Layout({ children }: LayoutProps) {
     localStorage.setItem('offlineMode', offlineMode ? 'true' : 'false');
   }, [offlineMode]);
 
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
+  // Handle sign out
+  const handleSignOut = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live/api'}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      
+      if (response.ok) {
+        // Clear local storage and redirect to login
+        localStorage.clear();
+        window.location.href = '/';
+      }
+    } catch (error) {
+      // Fallback: clear storage and redirect anyway
+      localStorage.clear();
+      window.location.href = '/';
+    }
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{backgroundColor: '#171717'}}>
-      {/* Header Bar - Desktop */}
-      <header className="hidden md:block border-b" style={{backgroundColor: '#262626', borderColor: '#404040'}}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-white">
-                <span className="text-white">☀</span> <span className="font-black">SOLE</span><span className="font-serif italic font-semibold">il</span>
-              </h1>
-              {!isOnline && (
-                <span className="ml-3 px-2 py-1 text-xs font-medium text-yellow-800 bg-yellow-100 rounded dark:text-yellow-200 dark:bg-yellow-900">
-                  Offline
-                </span>
-              )}
+    <div className="min-h-screen" style={{backgroundColor: '#ffffff'}}>
+      {/* Navigation Header */}
+      <nav className="nav-container">
+        <div className="nav-content">
+          {/* Logo - Now clickable */}
+          <Link href="/dashboard" className="logo-link">
+            <div className="logo-wrapper">
+              <span className="text-white">☀</span> <span className="logo-sole">SOLE</span><span className="logo-il">il</span>
             </div>
-            
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => {
-                  // Clear any local storage
-                  localStorage.clear();
-                  // Redirect to home page to trigger re-authentication
-                  window.location.href = '/';
-                }}
-                className="text-gray-400 hover:text-white text-sm transition-colors"
-              >
-                Sign Out
-              </button>
-            </div>
-
-          </div>
-        </div>
-      </header>
-
-      {/* Mobile Header */}
-      <header className="md:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex justify-between items-center h-16 px-4">
-          <div className="flex items-center">
-            <h1 className="text-lg font-semibold text-white">
-              <span className="text-white">☀</span> <span className="font-black">SOLE</span><span className="font-serif italic font-semibold">il</span>
-            </h1>
-            {!isOnline && (
-              <span className="ml-2 px-2 py-0.5 text-xs font-medium text-yellow-800 bg-yellow-100 rounded dark:text-yellow-200 dark:bg-yellow-900">
-                Offline
-              </span>
+          </Link>
+          
+          {/* Navigation Items - Desktop */}
+          <ul className="nav-items hidden md:flex">
+            {navigation.map(item => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+              return (
+                <li key={item.href}>
+                  <Link 
+                    href={item.href}
+                    className={`nav-link ${isActive ? 'active' : ''}`}
+                  >
+                    <Icon className="w-4 h-4 mr-2" />
+                    {item.name}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+          
+          {/* Sign Out Button */}
+          <button 
+            onClick={handleSignOut}
+            className="sign-out-btn hidden md:block"
+          >
+            Sign Out
+          </button>
+          
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden text-white hover:opacity-80 transition-opacity"
+          >
+            {isMobileMenuOpen ? (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            ) : (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
             )}
-          </div>
-
-          <div className="flex items-center">
-            <button
-              onClick={() => {
-                // Clear any local storage
-                localStorage.clear();
-                // Redirect to home page to trigger re-authentication
-                window.location.href = '/';
-              }}
-              className="text-gray-400 hover:text-white text-sm transition-colors"
+          </button>
+        </div>
+        
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <div className="mobile-nav">
+            {navigation.map(item => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+              return (
+                <Link 
+                  key={item.href}
+                  href={item.href}
+                  className={`mobile-nav-link ${isActive ? 'active' : ''}`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <Icon className="w-5 h-5 mr-3" />
+                  {item.name}
+                </Link>
+              );
+            })}
+            <button 
+              onClick={handleSignOut}
+              className="mobile-nav-link text-left w-full"
             >
               Sign Out
             </button>
           </div>
-
-        </div>
-
-      </header>
+        )}
+      </nav>
 
       {/* Main Content */}
-      <main className="flex-1 pb-20 md:pb-0" style={{backgroundColor: '#171717'}}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={pathname}
-              variants={variants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              style={{ willChange: 'opacity' }}
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
-        </div>
+      <main className="main-content">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={pathname}
+            variants={variants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            style={{ willChange: 'opacity' }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
       </main>
-
     </div>
   );
 }

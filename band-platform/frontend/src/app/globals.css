@@ -3,6 +3,10 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --overscroll-bg: #ffffff; /* White overscroll instead of blue */
+  --border: #e5e5e5;
+  --primary: #ff6b00;
+  --primary-foreground: #ffffff;
   --scale: 1;
 }
 
@@ -20,12 +24,274 @@
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: "Inter", Arial, Helvetica, sans-serif;
+/* Fix overscroll on all platforms */
+html {
+  background-color: var(--overscroll-bg);
+  min-height: 100%;
+  font-size: calc(16px * var(--scale));
 }
 
-html {
-  font-size: calc(16px * var(--scale));
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  min-height: 100vh;
+  margin: 0;
+  font-family: "Inter", Arial, Helvetica, sans-serif;
+  
+  /* Prevent overscroll bounce on iOS */
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Additional overscroll fix for webkit browsers */
+@supports (-webkit-touch-callout: none) {
+  body::before,
+  body::after {
+    content: '';
+    position: fixed;
+    left: 0;
+    right: 0;
+    height: 100vh;
+    background: var(--overscroll-bg);
+    pointer-events: none;
+    z-index: -1;
+  }
+  
+  body::before {
+    top: -100vh;
+  }
+  
+  body::after {
+    bottom: -100vh;
+  }
+}
+
+/* Navigation Styles */
+.nav-container {
+  background: var(--background);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+}
+
+.nav-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+/* Logo Styles */
+.logo-link {
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+  flex-shrink: 0;
+}
+
+.logo-link:hover {
+  opacity: 0.8;
+}
+
+.logo-wrapper {
+  display: flex;
+  align-items: baseline;
+  font-size: 1.5rem;
+  font-weight: bold;
+  gap: 0.25rem;
+}
+
+.logo-sole {
+  color: var(--foreground);
+  font-weight: 900;
+}
+
+.logo-il {
+  color: var(--primary);
+  font-style: italic;
+  font-family: serif;
+}
+
+/* Navigation Items */
+.nav-items {
+  display: flex;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  justify-content: center;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  color: var(--foreground);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  font-size: 0.875rem;
+}
+
+.nav-link:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.nav-link.active {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+/* Sign Out Button */
+.sign-out-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--foreground);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  font-size: 0.875rem;
+}
+
+.sign-out-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* Mobile Navigation */
+.mobile-nav {
+  border-top: 1px solid var(--border);
+  background: var(--background);
+  padding: 1rem;
+}
+
+.mobile-nav-link {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  color: var(--foreground);
+  transition: all 0.2s ease;
+  margin-bottom: 0.25rem;
+  border: none;
+  background: transparent;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.mobile-nav-link:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.mobile-nav-link.active {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Page Container */
+.page-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 0;
+}
+
+/* Placeholder Page Styles */
+.placeholder-content {
+  max-width: 600px;
+  margin: 4rem auto;
+  text-align: center;
+  padding: 2rem;
+}
+
+.placeholder-icon {
+  font-size: 4rem;
+  margin-bottom: 2rem;
+}
+
+.placeholder-message {
+  font-size: 1.25rem;
+  color: #666;
+  margin: 1rem 0;
+}
+
+.placeholder-eta {
+  font-size: 1rem;
+  color: #999;
+  margin-bottom: 3rem;
+}
+
+.placeholder-contact {
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+
+.feedback-link {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.feedback-link:hover {
+  text-decoration: underline;
+}
+
+/* Settings Page Styles */
+.settings-sections {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.settings-section {
+  margin-bottom: 3rem;
+  padding: 2rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+}
+
+.settings-section h2 {
+  margin-bottom: 1rem;
+}
+
+.settings-placeholder {
+  color: #666;
+}
+
+.settings-placeholder p {
+  margin: 0.5rem 0;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .nav-content {
+    padding: 1rem;
+  }
+  
+  .logo-wrapper {
+    font-size: 1.25rem;
+  }
+  
+  .main-content {
+    padding: 1rem;
+  }
+  
+  .page-container {
+    padding: 1rem 0;
+  }
 }
