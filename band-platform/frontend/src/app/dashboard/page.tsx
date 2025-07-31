@@ -18,30 +18,28 @@ export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchProfile = async () => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/user/profile`);
-      const data = await response.json();
-      
-      if (data.status === 'success') {
-        setUser(data.profile);
-      } else if (data.message && data.message.includes('Not authenticated')) {
-        router.push('/');
-      } else {
-        setError(data.message || 'Failed to load profile');
-      }
-    } catch (err) {
-      setError('Failed to connect to backend');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/user/profile`);
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+          setUser(data.profile);
+        } else if (data.message && data.message.includes('Not authenticated')) {
+          router.push('/');
+        }
+      } catch (err) {
+        console.error('Failed to load profile:', err);
+        router.push('/');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     fetchProfile();
-  }, []);
+  }, [router]);
 
   if (isLoading) {
     return (

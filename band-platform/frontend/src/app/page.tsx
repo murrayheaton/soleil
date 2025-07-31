@@ -302,6 +302,10 @@ export default function BandPlatform() {
     }
   }, [profile, isEditingProfile]);
 
+  if (!profile) {
+    return null; // Don't render profile interface if no profile
+  }
+
   return (
     <div className="min-h-screen text-white" style={{backgroundColor: '#171717'}}>
       {/* Header */}
