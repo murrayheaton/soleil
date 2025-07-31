@@ -17,7 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import backoff
 
 from ..database.connection import get_db_session
-from ..models.sync import SyncOperation, SyncStatus
+from ..models.sync import SyncOperation, SyncStatus, GoogleService
 from ..models.user import Band
 from .google_drive import GoogleDriveService
 from .google_sheets import GoogleSheetsService
