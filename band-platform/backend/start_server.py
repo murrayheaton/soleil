@@ -979,6 +979,64 @@ async def view_file(file_id: str):
             "message": f"Error viewing file: {str(e)}"
         }
 
+@app.get("/api/dashboard/upcoming-gigs")
+async def get_upcoming_gigs():
+    """Get upcoming gigs for dashboard widget."""
+    import json
+    
+    try:
+        # Check if we have a token with user email
+        if not os.path.exists('google_token.json'):
+            return {"status": "error", "message": "Not authenticated"}
+        
+        with open('google_token.json', 'r') as f:
+            tokens = json.load(f)
+        
+        user_email = tokens.get('user_email')
+        if not user_email:
+            return {"status": "error", "message": "No user email found"}
+        
+        # For now, return empty array (will be implemented with gig management)
+        # In future: query database for actual gigs
+        return []
+        
+    except Exception as e:
+        logger.error(f"Failed to fetch upcoming gigs: {e}")
+        return {"status": "error", "message": "Failed to fetch gigs"}
+
+@app.get("/api/dashboard/recent-repertoire")
+async def get_recent_repertoire():
+    """Get recently added repertoire items."""
+    import json
+    
+    try:
+        # Check if we have a token with user email
+        if not os.path.exists('google_token.json'):
+            return {"status": "error", "message": "Not authenticated"}
+        
+        with open('google_token.json', 'r') as f:
+            tokens = json.load(f)
+        
+        user_email = tokens.get('user_email')
+        if not user_email:
+            return {"status": "error", "message": "No user email found"}
+        
+        # Get recent files from Google Drive sync
+        # This is placeholder - integrate with actual file sync
+        recent_items = []
+        
+        # In future: Query actual synced files from database
+        # For now, return sample data for testing
+        if os.path.exists("user_profiles.json"):
+            # Could check for recent sync activity here
+            pass
+        
+        return recent_items
+        
+    except Exception as e:
+        logger.error(f"Failed to fetch recent repertoire: {e}")
+        return {"status": "error", "message": "Failed to fetch repertoire"}
+
 if __name__ == "__main__":
     uvicorn.run(
         "start_server:app",

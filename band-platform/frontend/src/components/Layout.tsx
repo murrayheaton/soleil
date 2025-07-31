@@ -37,11 +37,8 @@ interface NavItem {
 }
 
 const navigation: NavItem[] = [
-  { name: 'Dashboard', href: '/', icon: HomeIcon, iconSolid: HomeIconSolid },
-  { name: 'Charts', href: '/charts', icon: DocumentTextIcon, iconSolid: DocumentTextIconSolid },
-  { name: 'Audio', href: '/audio', icon: MusicalNoteIcon, iconSolid: MusicalNoteIconSolid },
-  { name: 'Setlists', href: '/setlists', icon: ListBulletIcon, iconSolid: ListBulletIconSolid },
-  { name: 'Band', href: '/band', icon: UserGroupIcon, iconSolid: UserGroupIconSolid },
+  { name: 'Dashboard', href: '/dashboard', icon: HomeIcon, iconSolid: HomeIconSolid },
+  { name: 'Repertoire', href: '/repertoire', icon: MusicalNoteIcon, iconSolid: MusicalNoteIconSolid },
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon, iconSolid: Cog6ToothIconSolid },
 ];
 
@@ -131,9 +128,9 @@ export default function Layout({ children }: LayoutProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-white">
+              <Link href="/dashboard" className="text-xl font-semibold text-white hover:opacity-80 transition-opacity">
                 <span className="text-white">☀</span> <span className="font-black">SOLE</span><span className="font-serif italic font-semibold">il</span>
-              </h1>
+              </Link>
               {!isOnline && (
                 <span className="ml-3 px-2 py-1 text-xs font-medium text-yellow-800 bg-yellow-100 rounded dark:text-yellow-200 dark:bg-yellow-900">
                   Offline
@@ -163,9 +160,9 @@ export default function Layout({ children }: LayoutProps) {
       <header className="md:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="flex justify-between items-center h-16 px-4">
           <div className="flex items-center">
-            <h1 className="text-lg font-semibold text-white">
+            <Link href="/dashboard" className="text-lg font-semibold text-white hover:opacity-80 transition-opacity">
               <span className="text-white">☀</span> <span className="font-black">SOLE</span><span className="font-serif italic font-semibold">il</span>
-            </h1>
+            </Link>
             {!isOnline && (
               <span className="ml-2 px-2 py-0.5 text-xs font-medium text-yellow-800 bg-yellow-100 rounded dark:text-yellow-200 dark:bg-yellow-900">
                 Offline
