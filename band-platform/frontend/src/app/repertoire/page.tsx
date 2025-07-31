@@ -63,7 +63,7 @@ export default function RepertoirePage() {
 
   const fetchProfile = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/user/profile');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/user/profile`);
       const data = await response.json();
       
       if (data.status === 'success') {
@@ -84,7 +84,7 @@ export default function RepertoirePage() {
     setError(null);
     
     try {
-      const response = await fetch(`http://localhost:8000/api/drive/${instrument}-view`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/drive/${instrument}-view`);
       const data = await response.json();
       
       if (data.status === 'success') {
@@ -116,7 +116,7 @@ export default function RepertoirePage() {
 
   const downloadFile = async (fileId: string, fileName: string) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/drive/download/${fileId}`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/drive/download/${fileId}`);
       const blob = await response.blob();
       
       const url = window.URL.createObjectURL(blob);
@@ -479,7 +479,7 @@ export default function RepertoirePage() {
                 {selectedFile.songData.charts.length > 0 ? (
                   <div className="flex-1" style={{backgroundColor: '#171717'}}>
                     <iframe
-                      src={`http://localhost:8000/api/drive/view/${selectedFile.songData.charts.find(c => !c.is_placeholder)?.id || selectedFile.songData.charts[0].id}#toolbar=0&navpanes=0&scrollbar=0&zoom=page-fit`}
+                      src={`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/drive/view/${selectedFile.songData.charts.find(c => !c.is_placeholder)?.id || selectedFile.songData.charts[0].id}#toolbar=0&navpanes=0&scrollbar=0&zoom=page-fit`}
                       className="w-full h-full"
                       title={`Chart - ${selectedFile.song}`}
                     />
@@ -529,15 +529,15 @@ export default function RepertoirePage() {
                           }}
                         >
                           <source 
-                            src={`http://localhost:8000/api/drive/view/${selectedFile.songData.audio.find(a => !a.is_placeholder)?.id || selectedFile.songData.audio[0].id}`}
+                            src={`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/drive/view/${selectedFile.songData.audio.find(a => !a.is_placeholder)?.id || selectedFile.songData.audio[0].id}`}
                             type="audio/mpeg"
                           />
                           <source 
-                            src={`http://localhost:8000/api/drive/view/${selectedFile.songData.audio.find(a => !a.is_placeholder)?.id || selectedFile.songData.audio[0].id}`}
+                            src={`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/drive/view/${selectedFile.songData.audio.find(a => !a.is_placeholder)?.id || selectedFile.songData.audio[0].id}`}
                             type="audio/wav"
                           />
                           <source 
-                            src={`http://localhost:8000/api/drive/view/${selectedFile.songData.audio.find(a => !a.is_placeholder)?.id || selectedFile.songData.audio[0].id}`}
+                            src={`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/drive/view/${selectedFile.songData.audio.find(a => !a.is_placeholder)?.id || selectedFile.songData.audio[0].id}`}
                             type="audio/m4a"
                           />
                           Your browser does not support the audio element.
@@ -601,7 +601,7 @@ export default function RepertoirePage() {
                   <div className="space-y-4">
                     <div className="bg-gray-900 rounded overflow-hidden" style={{ height: '70vh' }}>
                       <iframe
-                        src={`http://localhost:8000/api/drive/view/${selectedFile.file.id}#toolbar=0&navpanes=0&scrollbar=0&zoom=page-fit`}
+                        src={`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/drive/view/${selectedFile.file.id}#toolbar=0&navpanes=0&scrollbar=0&zoom=page-fit`}
                         className="w-full h-full"
                         title={`PDF Viewer - ${selectedFile.file.name}`}
                       />
@@ -628,11 +628,11 @@ export default function RepertoirePage() {
                         preload="metadata"
                       >
                         <source 
-                          src={`http://localhost:8000/api/drive/view/${selectedFile.file.id}`}
+                          src={`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/drive/view/${selectedFile.file.id}`}
                           type="audio/mpeg"
                         />
                         <source 
-                          src={`http://localhost:8000/api/drive/view/${selectedFile.file.id}`}
+                          src={`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/drive/view/${selectedFile.file.id}`}
                           type="audio/wav"
                         />
                         Your browser does not support the audio element.

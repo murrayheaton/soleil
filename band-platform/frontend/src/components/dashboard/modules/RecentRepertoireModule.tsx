@@ -20,7 +20,7 @@ export function RecentRepertoireModule({ userId }: ModuleProps) {
   const fetchRecentRepertoire = async () => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/dashboard/recent-repertoire`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/dashboard/recent-repertoire`,
         { credentials: 'include' }
       );
       

@@ -22,7 +22,7 @@ export function UpcomingGigsModule({ userId }: ModuleProps) {
   const fetchUpcomingGigs = async () => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/dashboard/upcoming-gigs`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/dashboard/upcoming-gigs`,
         { credentials: 'include' }
       );
       

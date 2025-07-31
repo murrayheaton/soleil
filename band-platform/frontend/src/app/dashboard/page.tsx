@@ -22,13 +22,28 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/user/profile`);
-        const data = await response.json();
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/user/profile`, {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
         
-        if (data.status === 'success') {
-          setUser(data.profile);
-        } else if (data.message && data.message.includes('Not authenticated')) {
-          router.push('/login');
+        if (!response.ok) {
+          if (response.status === 401) {
+            router.push('/login');
+            return;
+          }
+          throw new Error(`Profile fetch failed: ${response.status}`);
+        }
+        
+        const profile = await response.json();
+        
+        // Profile is returned directly now, not wrapped in status/profile
+        if (profile && (profile.id || profile.email)) {
+          setUser(profile);
+        } else {
+          throw new Error('Invalid profile data received');
         }
       } catch (err) {
         console.error('Failed to load profile:', err);
