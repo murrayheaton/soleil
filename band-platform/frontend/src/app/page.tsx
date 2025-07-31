@@ -52,6 +52,10 @@ interface UserProfile {
   display_name: string;
 }
 
+const PROFILE_LOAD_TIMEOUT = 10000; // 10 seconds
+const MAX_RETRIES = 3;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live/api';
+
 export default function BandPlatform() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -59,28 +63,71 @@ export default function BandPlatform() {
   const [authStatus, setAuthStatus] = useState<'checking' | 'needed' | 'success' | 'error'>('checking');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editedProfile, setEditedProfile] = useState<UserProfile | null>(null);
+  const [loadingState, setLoadingState] = useState<'loading' | 'error' | 'timeout' | 'success'>('loading');
+  const [retryCount, setRetryCount] = useState(0);
+
+  const loadProfile = async () => {
+    try {
+      const response = await fetch(`${API_URL}/users/profile`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Not authenticated, redirect to login
+          setAuthStatus('needed');
+          setError('Please connect your Google Drive to access your profile.');
+          return;
+        }
+        throw new Error(`Profile load failed: ${response.status}`);
+      }
+
+      const profileData = await response.json();
+      
+      if (profileData && (profileData.email || profileData.id)) {
+        setProfile(profileData);
+        setLoadingState('success');
+        setAuthStatus('success');
+      } else {
+        throw new Error('Invalid profile data received');
+      }
+    } catch (err) {
+      console.error('Profile load error:', err);
+      
+      if (retryCount < MAX_RETRIES) {
+        // Exponential backoff retry
+        setTimeout(() => {
+          setRetryCount(prev => prev + 1);
+        }, Math.pow(2, retryCount) * 1000);
+      } else {
+        setLoadingState('error');
+        setError(err instanceof Error ? err.message : 'Failed to load profile');
+      }
+    }
+  };
 
   const fetchProfile = async () => {
     setLoading(true);
     setError(null);
+    setLoadingState('loading');
+    setRetryCount(0);
     
-    try {
-      const response = await fetch('http://localhost:8000/api/user/profile');
-      const data = await response.json();
-      
-      console.log('Profile API response:', data);
-      if (data.status === 'success') {
-        setProfile(data.profile);
-        setAuthStatus('success');
-      } else if (data.message && data.message.includes('Not authenticated')) {
-        setAuthStatus('needed');
-        setError('Please connect your Google Drive to access your profile.');
-      } else {
-        setError(data.message || 'Failed to load profile');
+    // Set up timeout
+    const timeoutId = setTimeout(() => {
+      if (loadingState === 'loading') {
+        setLoadingState('timeout');
+        setError('Profile loading timed out. Please refresh the page.');
+        setLoading(false);
       }
-    } catch (err) {
-      setError('Failed to connect to backend. Make sure the backend is running on port 8000.');
+    }, PROFILE_LOAD_TIMEOUT);
+
+    try {
+      await loadProfile();
     } finally {
+      clearTimeout(timeoutId);
       setLoading(false);
     }
   };
@@ -106,10 +153,18 @@ export default function BandPlatform() {
     }
   }, []);
 
+  // Retry effect
+  useEffect(() => {
+    if (retryCount > 0 && retryCount <= MAX_RETRIES) {
+      loadProfile();
+    }
+  }, [retryCount]);
+
   const updateProfile = async (updatedProfile: Partial<UserProfile>) => {
     try {
-      const response = await fetch('http://localhost:8000/api/user/profile', {
+      const response = await fetch(`${API_URL}/user/profile`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -144,13 +199,14 @@ export default function BandPlatform() {
 
   const handleGoogleSignIn = () => {
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (!clientId || !apiUrl) {
-      console.error('Google OAuth environment variables are not set');
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://solepower.live';
+    
+    if (!clientId) {
+      console.error('Google OAuth client ID is not set');
       return;
     }
 
-    const redirectUri = `${apiUrl}/api/auth/google/callback`;
+    const redirectUri = `${backendUrl}/api/auth/google/callback`;
     const authUrl =
       `https://accounts.google.com/o/oauth2/auth?client_id=${clientId}` +
       `&response_type=code&scope=https://www.googleapis.com/auth/drive.readonly` +
@@ -159,13 +215,48 @@ export default function BandPlatform() {
     window.location.href = authUrl;
   };
 
-  if (loading) {
+  // Render loading states
+  if (loadingState === 'loading' || loading) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white p-8">
+      <div className="loading-container min-h-screen text-white p-8" style={{backgroundColor: '#171717'}}>
         <div className="max-w-4xl mx-auto">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-500 mx-auto mb-4"></div>
+            <div className="loading-spinner animate-spin rounded-full h-12 w-12 border-b-2 border-gray-500 mx-auto mb-4"></div>
             <p className="text-gray-400">Loading your profile...</p>
+            {retryCount > 0 && <p className="retry-text text-gray-500 text-sm mt-2">Retry attempt {retryCount} of {MAX_RETRIES}</p>}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (loadingState === 'error' || loadingState === 'timeout') {
+    return (
+      <div className="error-container min-h-screen text-white p-8" style={{backgroundColor: '#171717'}}>
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-white mb-4">Unable to Load Profile</h2>
+            <p className="error-message text-gray-400 mb-6">{error}</p>
+            <div className="error-actions space-x-4">
+              <button 
+                onClick={() => window.location.reload()}
+                className="text-white px-6 py-3 rounded transition-colors hover:opacity-80"
+                style={{backgroundColor: '#000000'}}
+              >
+                Refresh Page
+              </button>
+              <button 
+                onClick={() => {
+                  setAuthStatus('needed');
+                  setLoadingState('loading');
+                  setError(null);
+                }}
+                className="text-white px-6 py-3 rounded transition-colors hover:opacity-80"
+                style={{backgroundColor: '#525252'}}
+              >
+                Back to Login
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -173,7 +264,7 @@ export default function BandPlatform() {
   }
 
   // Show login screen when authentication is needed
-  if (authStatus === 'needed' || (error && error.includes('Not authenticated'))) {
+  if (authStatus === 'needed' || authStatus === 'error' || (error && error.includes('Not authenticated'))) {
     return (
       <div className="fixed inset-0 flex items-center justify-center" style={{backgroundColor: '#171717', paddingBottom: '25vh'}}>
         <div className="max-w-md w-full mx-4">
