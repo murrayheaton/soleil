@@ -28,11 +28,11 @@ export default function DashboardPage() {
         if (data.status === 'success') {
           setUser(data.profile);
         } else if (data.message && data.message.includes('Not authenticated')) {
-          router.push('/');
+          router.push('/login');
         }
       } catch (err) {
         console.error('Failed to load profile:', err);
-        router.push('/');
+        router.push('/login');
       } finally {
         setIsLoading(false);
       }
