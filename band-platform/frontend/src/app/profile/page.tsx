@@ -65,7 +65,7 @@ export default function BandPlatform() {
     setError(null);
     
     try {
-      const response = await fetch('http://localhost:8000/api/user/profile');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/user/profile`);
       const data = await response.json();
       
       console.log('Profile API response:', data);
@@ -108,7 +108,7 @@ export default function BandPlatform() {
 
   const updateProfile = async (updatedProfile: Partial<UserProfile>) => {
     try {
-      const response = await fetch('http://localhost:8000/api/user/profile', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/user/profile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

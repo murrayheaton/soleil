@@ -20,7 +20,7 @@ passlib[bcrypt]==1.7.4
 PyJWT>=2.8
 
 # Data validation and settings
-pydantic==2.5.0
+pydantic[email]==2.5.0
 pydantic-settings==2.1.0
 python-dotenv==1.0.0
 
@@ -32,6 +32,7 @@ aiofiles==23.2.1
 # Utilities
 python-dateutil==2.8.2
 pytz==2023.3
+backoff==2.2.1
 
 # Development and testing
 pytest==7.4.3

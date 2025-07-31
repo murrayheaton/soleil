@@ -37,8 +37,6 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000", 
-        "http://localhost:3001",
         "https://solepower.live",
         "https://www.solepower.live"
     ],
@@ -161,7 +159,7 @@ async def google_direct_login(request: dict):
             return {
                 "status": "need_oauth",
                 "message": "Please complete Google Drive connection",
-                "auth_url": f"https://accounts.google.com/o/oauth2/auth?client_id={client_id}&response_type=code&scope=https://www.googleapis.com/auth/drive.readonly&redirect_uri=http://localhost:8000/api/auth/google/callback&access_type=offline&prompt=consent&login_hint={email}"
+                "auth_url": f"https://accounts.google.com/o/oauth2/auth?client_id={client_id}&response_type=code&scope=https://www.googleapis.com/auth/drive.readonly&redirect_uri={os.getenv('GOOGLE_REDIRECT_URI', 'https://solepower.live/api/auth/google/callback')}&access_type=offline&prompt=consent&login_hint={email}"
             }
         
     except Exception as e:
@@ -258,23 +256,34 @@ async def get_user_profile_endpoint(request: Request):
             name=user_name
         )
         
-        # Convert to old format for compatibility
+        # Add legacy fields for compatibility
+        if 'instrument' not in fresh_profile:
+            # Apply legacy defaults
+            if user_email == 'murrayrheaton@gmail.com':
+                fresh_profile.update({
+                    "instrument": "alto_sax",
+                    "transposition": "E♭",
+                    "display_name": "Alto Sax"
+                })
+            else:
+                fresh_profile.update({
+                    "instrument": "trumpet", 
+                    "transposition": "B♭",
+                    "display_name": "Trumpet"
+                })
+        
+        # Convert to consistent API format
         legacy_profile = {
+            "id": fresh_profile.get("id", user_id),
             "email": fresh_profile["email"],
             "name": fresh_profile["name"],
             "instrument": fresh_profile.get("instrument", "alto_sax"),
             "transposition": fresh_profile.get("transposition", "E♭"),
-            "display_name": fresh_profile.get("display_name", "Alto Sax")
+            "display_name": fresh_profile.get("display_name", "Alto Sax"),
+            "created_at": fresh_profile.get("created_at"),
+            "updated_at": fresh_profile.get("updated_at"),
+            "is_transient": fresh_profile.get("is_transient", False)
         }
-        
-        # Apply legacy defaults if needed
-        if user_email == 'murrayrheaton@gmail.com':
-            legacy_profile.update({
-                "name": "Murray",
-                "instrument": "alto_sax",
-                "transposition": "E♭",
-                "display_name": "Alto Sax"
-            })
         
         duration = (datetime.now() - start_time).total_seconds()
         logger.info(f"Profile fetch successful in {duration:.2f}s for {user_email}")
@@ -368,6 +377,20 @@ async def update_user_profile_endpoint(request: Request):
             content={"error": "Failed to update profile"}
         )
 
+@app.post("/api/auth/logout")
+async def logout(request: Request):
+    """Logout user and clear session."""
+    try:
+        # Remove the Google token file to log out the user
+        if os.path.exists('google_token.json'):
+            os.remove('google_token.json')
+            logger.info("User logged out - token file removed")
+        
+        return JSONResponse(content={"status": "logged out"})
+    except Exception as e:
+        logger.error(f"Logout error: {e}")
+        return JSONResponse(content={"status": "error", "message": "Failed to logout"})
+
 @app.get("/api/auth/google/callback")
 async def auth_callback(request: Request, code: str = None, error: str = None):
     """Handle Google OAuth callback with comprehensive logging."""
@@ -377,7 +400,7 @@ async def auth_callback(request: Request, code: str = None, error: str = None):
     logger.info(f"Auth callback started - Session: {session_id}")
     
     # Determine frontend URL based on environment
-    frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:3000')
+    frontend_url = os.getenv('FRONTEND_URL', 'https://solepower.live')
     
     if error:
         logger.error(f"Auth callback received error: {error}")
@@ -397,7 +420,7 @@ async def auth_callback(request: Request, code: str = None, error: str = None):
             'client_secret': os.getenv('GOOGLE_CLIENT_SECRET'),
             'code': code,
             'grant_type': 'authorization_code',
-            'redirect_uri': os.getenv('GOOGLE_REDIRECT_URI', 'http://localhost:8000/api/auth/google/callback')
+            'redirect_uri': os.getenv('GOOGLE_REDIRECT_URI', 'https://solepower.live/api/auth/google/callback')
         }
         
         token_start = datetime.now()
@@ -419,7 +442,13 @@ async def auth_callback(request: Request, code: str = None, error: str = None):
             if user_info_response.status_code == 200:
                 user_info = user_info_response.json()
                 user_email = user_info.get('email', 'unknown')
+                user_id = user_info.get('id', user_email)  # Use Google ID as primary key
+                user_name = user_info.get('name', user_email.split('@')[0])
+                
+                # Store user info in tokens for later use
                 tokens['user_email'] = user_email
+                tokens['user_id'] = user_id
+                tokens['user_name'] = user_name
                 tokens['auth_method'] = 'oauth'
                 
                 logger.info(f"User info retrieved in {user_info_duration:.2f}s for: {user_email}")
@@ -429,9 +458,9 @@ async def auth_callback(request: Request, code: str = None, error: str = None):
                 
                 profile_start = datetime.now()
                 profile = await profile_service.get_or_create_profile(
-                    user_id=user_info['id'],
+                    user_id=user_id,
                     email=user_email,
-                    name=user_info.get('name', user_email.split('@')[0])
+                    name=user_name
                 )
                 profile_duration = (datetime.now() - profile_start).total_seconds()
                 
@@ -443,7 +472,7 @@ async def auth_callback(request: Request, code: str = None, error: str = None):
                     json.dump(tokens, f)
                 
                 logger.info(f"Auth callback successful for {user_email}")
-                return RedirectResponse(url=f"{frontend_url}/profile?auth=success")
+                return RedirectResponse(url=f"{frontend_url}?auth=success")
             else:
                 logger.error(f"Failed to get user info: {user_info_response.status_code}")
                 return RedirectResponse(url=f"{frontend_url}?auth=error&message=Failed+to+get+user+info")
