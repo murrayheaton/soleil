@@ -443,7 +443,7 @@ async def auth_callback(request: Request, code: str = None, error: str = None):
                     json.dump(tokens, f)
                 
                 logger.info(f"Auth callback successful for {user_email}")
-                return RedirectResponse(url=f"{frontend_url}?auth=success")
+                return RedirectResponse(url=f"{frontend_url}/profile?auth=success")
             else:
                 logger.error(f"Failed to get user info: {user_info_response.status_code}")
                 return RedirectResponse(url=f"{frontend_url}?auth=error&message=Failed+to+get+user+info")
