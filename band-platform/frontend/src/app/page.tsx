@@ -203,6 +203,14 @@ export default function BandPlatform() {
     );
   }
 
+  // Redirect to dashboard after successful authentication
+  useEffect(() => {
+    if (profile && !isEditingProfile) {
+      // If user is authenticated and has a profile, redirect to dashboard
+      window.location.href = '/dashboard';
+    }
+  }, [profile, isEditingProfile]);
+
   return (
     <div className="min-h-screen text-white" style={{backgroundColor: '#171717'}}>
       {/* Header */}
