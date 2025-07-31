@@ -5,15 +5,26 @@ This bypasses the circular dependency issue by creating a minimal FastAPI app.
 """
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, RedirectResponse
 import os
 import io
+import logging
+import traceback
+from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
+
+# Configure production logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # Simple app for demo purposes
 app = FastAPI(
@@ -22,10 +33,15 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS
+# CORS - Updated for production
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],
+    allow_origins=[
+        "http://localhost:3000", 
+        "http://localhost:3001",
+        "https://solepower.live",
+        "https://www.solepower.live"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -199,84 +215,181 @@ def get_user_profile(email):
     return profiles[email]
 
 @app.get("/api/user/profile")
-async def get_profile():
-    """Get current user's profile"""
-    import json
-    import os
+@app.get("/api/users/profile")  # Alternative endpoint for compatibility
+async def get_user_profile_endpoint(request: Request):
+    """Get current user profile with proper error handling."""
+    start_time = datetime.now()
+    session_id = id(request)
     
-    # Check if we have a token with user email
-    if not os.path.exists('google_token.json'):
-        return {"status": "error", "message": "Not authenticated"}
+    logger.info(f"Profile fetch started - Session: {session_id}")
     
     try:
+        # Check if we have a token with user email
+        if not os.path.exists('google_token.json'):
+            logger.warning("Profile fetch failed: Not authenticated")
+            return JSONResponse(
+                status_code=401,
+                content={"error": "Not authenticated"}
+            )
+        
+        # Load token and get user info
+        import json
         with open('google_token.json', 'r') as f:
             tokens = json.load(f)
         
         user_email = tokens.get('user_email')
         if not user_email:
-            return {"status": "error", "message": "No user email found"}
+            logger.error("Profile fetch failed: No user email in token")
+            return JSONResponse(
+                status_code=404,
+                content={"error": "Profile not found in session"}
+            )
         
-        profile = get_user_profile(user_email)
-        return {"status": "success", "profile": profile}
+        # Get profile using the profile service
+        from app.services.profile_service import profile_service
+        
+        # For existing users, try to get their profile or create with defaults
+        user_id = tokens.get('user_id', user_email)  # Fallback to email as ID
+        user_name = tokens.get('user_name', user_email.split('@')[0])
+        
+        fresh_profile = await profile_service.get_or_create_profile(
+            user_id=user_id,
+            email=user_email,
+            name=user_name
+        )
+        
+        # Convert to old format for compatibility
+        legacy_profile = {
+            "email": fresh_profile["email"],
+            "name": fresh_profile["name"],
+            "instrument": fresh_profile.get("instrument", "alto_sax"),
+            "transposition": fresh_profile.get("transposition", "E♭"),
+            "display_name": fresh_profile.get("display_name", "Alto Sax")
+        }
+        
+        # Apply legacy defaults if needed
+        if user_email == 'murrayrheaton@gmail.com':
+            legacy_profile.update({
+                "name": "Murray",
+                "instrument": "alto_sax",
+                "transposition": "E♭",
+                "display_name": "Alto Sax"
+            })
+        
+        duration = (datetime.now() - start_time).total_seconds()
+        logger.info(f"Profile fetch successful in {duration:.2f}s for {user_email}")
+        
+        return JSONResponse(content=legacy_profile)
         
     except Exception as e:
-        return {"status": "error", "message": f"Error loading profile: {str(e)}"}
+        duration = (datetime.now() - start_time).total_seconds()
+        logger.error(f"Profile fetch error after {duration:.2f}s: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Failed to load profile"}
+        )
 
 @app.post("/api/user/profile")
-async def update_profile(request: dict):
-    """Update user profile"""
-    import json
-    import os
+async def update_user_profile_endpoint(request: Request):
+    """Update user profile with proper error handling."""
+    start_time = datetime.now()
+    session_id = id(request)
     
-    # Check if we have a token with user email
-    if not os.path.exists('google_token.json'):
-        return {"status": "error", "message": "Not authenticated"}
+    logger.info(f"Profile update started - Session: {session_id}")
     
     try:
+        # Check if we have a token with user email
+        if not os.path.exists('google_token.json'):
+            logger.warning("Profile update failed: Not authenticated")
+            return JSONResponse(
+                status_code=401,
+                content={"error": "Not authenticated"}
+            )
+        
+        # Get request data
+        request_data = await request.json()
+        
+        # Load token and get user info
+        import json
         with open('google_token.json', 'r') as f:
             tokens = json.load(f)
         
         user_email = tokens.get('user_email')
         if not user_email:
-            return {"status": "error", "message": "No user email found"}
+            logger.error("Profile update failed: No user email in token")
+            return JSONResponse(
+                status_code=404,
+                content={"error": "Profile not found in session"}
+            )
         
-        # Load existing profiles
-        profiles_file = 'user_profiles.json'
-        profiles = {}
-        if os.path.exists(profiles_file):
-            with open(profiles_file, 'r') as f:
-                profiles = json.load(f)
+        # Use the profile service for updates
+        from app.services.profile_service import profile_service
+        
+        user_id = tokens.get('user_id', user_email)
+        
+        # Prepare updates
+        allowed_fields = ['name', 'instrument', 'transposition', 'display_name']
+        updates = {}
+        for field in allowed_fields:
+            if field in request_data:
+                updates[field] = request_data[field]
         
         # Update profile
-        if user_email not in profiles:
-            profiles[user_email] = get_user_profile(user_email)
+        updated_profile = await profile_service.update_profile(user_id, updates)
         
-        # Update fields
-        allowed_fields = ['name', 'instrument', 'transposition', 'display_name']
-        for field in allowed_fields:
-            if field in request:
-                profiles[user_email][field] = request[field]
-        
-        # Save profiles
-        with open(profiles_file, 'w') as f:
-            json.dump(profiles, f, indent=2)
-        
-        return {"status": "success", "profile": profiles[user_email]}
+        if updated_profile:
+            # Convert to legacy format
+            legacy_profile = {
+                "email": updated_profile["email"],
+                "name": updated_profile["name"],
+                "instrument": updated_profile.get("instrument", "alto_sax"),
+                "transposition": updated_profile.get("transposition", "E♭"),
+                "display_name": updated_profile.get("display_name", "Alto Sax")
+            }
+            
+            duration = (datetime.now() - start_time).total_seconds()
+            logger.info(f"Profile update successful in {duration:.2f}s for {user_email}")
+            
+            return JSONResponse(content={"status": "success", "profile": legacy_profile})
+        else:
+            logger.error(f"Profile update failed: Profile not found for {user_id}")
+            return JSONResponse(
+                status_code=404,
+                content={"error": "Profile not found"}
+            )
         
     except Exception as e:
-        return {"status": "error", "message": f"Error updating profile: {str(e)}"}
+        duration = (datetime.now() - start_time).total_seconds()
+        logger.error(f"Profile update error after {duration:.2f}s: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Failed to update profile"}
+        )
 
 @app.get("/api/auth/google/callback")
-async def google_callback(code: str = None, error: str = None):
+async def auth_callback(request: Request, code: str = None, error: str = None):
+    """Handle Google OAuth callback with comprehensive logging."""
+    start_time = datetime.now()
+    session_id = id(request)  # Simple session tracking
+    
+    logger.info(f"Auth callback started - Session: {session_id}")
+    
+    # Determine frontend URL based on environment
+    frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:3000')
+    
     if error:
-        from fastapi.responses import RedirectResponse
-        return RedirectResponse(url=f"http://localhost:3000?auth=error&message=Authentication+failed")
+        logger.error(f"Auth callback received error: {error}")
+        return RedirectResponse(url=f"{frontend_url}?auth=error&message=Authentication+failed")
     
     if not code:
-        from fastapi.responses import RedirectResponse
-        return RedirectResponse(url="http://localhost:3000?auth=error&message=No+authorization+code")
+        logger.error("Auth callback missing authorization code")
+        return RedirectResponse(url=f"{frontend_url}?auth=error&message=No+authorization+code")
     
     try:
+        logger.info(f"Auth code received: yes")
+        
         # Exchange code for tokens
         import requests
         token_data = {
@@ -287,35 +400,65 @@ async def google_callback(code: str = None, error: str = None):
             'redirect_uri': os.getenv('GOOGLE_REDIRECT_URI', 'http://localhost:8000/api/auth/google/callback')
         }
         
+        token_start = datetime.now()
         response = requests.post('https://oauth2.googleapis.com/token', data=token_data)
         tokens = response.json()
+        token_duration = (datetime.now() - token_start).total_seconds()
+        
+        logger.info(f"Token exchange completed in {token_duration:.2f}s: {'success' if 'access_token' in tokens else 'failed'}")
         
         if 'access_token' in tokens:
-            # Get user info from Google to get email
+            # Get user info from Google
+            user_info_start = datetime.now()
             user_info_response = requests.get(
                 'https://www.googleapis.com/oauth2/v2/userinfo',
                 headers={'Authorization': f"Bearer {tokens['access_token']}"}
             )
+            user_info_duration = (datetime.now() - user_info_start).total_seconds()
             
             if user_info_response.status_code == 200:
                 user_info = user_info_response.json()
-                tokens['user_email'] = user_info.get('email', '')
+                user_email = user_info.get('email', 'unknown')
+                tokens['user_email'] = user_email
                 tokens['auth_method'] = 'oauth'
-            
-            # Save token to file for later use
-            import json
-            with open('google_token.json', 'w') as f:
-                json.dump(tokens, f)
-            
-            # Redirect to frontend after successful authentication
-            from fastapi.responses import RedirectResponse
-            return RedirectResponse(url="http://localhost:3000?auth=success")
+                
+                logger.info(f"User info retrieved in {user_info_duration:.2f}s for: {user_email}")
+                
+                # Get or create profile using the profile service
+                from app.services.profile_service import profile_service
+                
+                profile_start = datetime.now()
+                profile = await profile_service.get_or_create_profile(
+                    user_id=user_info['id'],
+                    email=user_email,
+                    name=user_info.get('name', user_email.split('@')[0])
+                )
+                profile_duration = (datetime.now() - profile_start).total_seconds()
+                
+                logger.info(f"Profile {'created' if profile.get('is_new') else 'loaded'} in {profile_duration:.2f}s for {user_email}")
+                
+                # Save token to file for later use
+                import json
+                with open('google_token.json', 'w') as f:
+                    json.dump(tokens, f)
+                
+                logger.info(f"Auth callback successful for {user_email}")
+                return RedirectResponse(url=f"{frontend_url}?auth=success")
+            else:
+                logger.error(f"Failed to get user info: {user_info_response.status_code}")
+                return RedirectResponse(url=f"{frontend_url}?auth=error&message=Failed+to+get+user+info")
         else:
-            from fastapi.responses import RedirectResponse
-            return RedirectResponse(url="http://localhost:3000?auth=error&message=Failed+to+get+access+token")
+            logger.error(f"Token exchange failed: {tokens}")
+            return RedirectResponse(url=f"{frontend_url}?auth=error&message=Failed+to+get+access+token")
+            
     except Exception as e:
-        from fastapi.responses import RedirectResponse
-        return RedirectResponse(url=f"http://localhost:3000?auth=error&message=Authentication+error")
+        logger.error(f"Auth callback failed: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        return RedirectResponse(url=f"{frontend_url}?auth=error&message=Authentication+error")
+    
+    finally:
+        duration = (datetime.now() - start_time).total_seconds()
+        logger.info(f"Auth callback completed in {duration:.2f}s")
 
 @app.get("/api/drive/list-files")
 async def list_drive_files():
@@ -835,6 +978,64 @@ async def view_file(file_id: str):
             "status": "error",
             "message": f"Error viewing file: {str(e)}"
         }
+
+@app.get("/api/dashboard/upcoming-gigs")
+async def get_upcoming_gigs():
+    """Get upcoming gigs for dashboard widget."""
+    import json
+    
+    try:
+        # Check if we have a token with user email
+        if not os.path.exists('google_token.json'):
+            return {"status": "error", "message": "Not authenticated"}
+        
+        with open('google_token.json', 'r') as f:
+            tokens = json.load(f)
+        
+        user_email = tokens.get('user_email')
+        if not user_email:
+            return {"status": "error", "message": "No user email found"}
+        
+        # For now, return empty array (will be implemented with gig management)
+        # In future: query database for actual gigs
+        return []
+        
+    except Exception as e:
+        logger.error(f"Failed to fetch upcoming gigs: {e}")
+        return {"status": "error", "message": "Failed to fetch gigs"}
+
+@app.get("/api/dashboard/recent-repertoire")
+async def get_recent_repertoire():
+    """Get recently added repertoire items."""
+    import json
+    
+    try:
+        # Check if we have a token with user email
+        if not os.path.exists('google_token.json'):
+            return {"status": "error", "message": "Not authenticated"}
+        
+        with open('google_token.json', 'r') as f:
+            tokens = json.load(f)
+        
+        user_email = tokens.get('user_email')
+        if not user_email:
+            return {"status": "error", "message": "No user email found"}
+        
+        # Get recent files from Google Drive sync
+        # This is placeholder - integrate with actual file sync
+        recent_items = []
+        
+        # In future: Query actual synced files from database
+        # For now, return sample data for testing
+        if os.path.exists("user_profiles.json"):
+            # Could check for recent sync activity here
+            pass
+        
+        return recent_items
+        
+    except Exception as e:
+        logger.error(f"Failed to fetch recent repertoire: {e}")
+        return {"status": "error", "message": "Failed to fetch repertoire"}
 
 if __name__ == "__main__":
     uvicorn.run(

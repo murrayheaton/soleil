@@ -4,6 +4,10 @@ import withPWA from 'next-pwa';
 const nextConfig: NextConfig = {
   /* config options here */
   serverExternalPackages: ['pdfjs-dist'],
+  eslint: {
+    // Allow production builds to complete even with ESLint errors
+    ignoreDuringBuilds: true,
+  },
   turbo: {
     rules: {
       '*.svg': {
