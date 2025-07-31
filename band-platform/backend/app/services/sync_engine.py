@@ -270,10 +270,18 @@ class SyncEngine:
             
             # Record sync operation in database
             async with get_db_session() as session:
+                google_service = event.metadata.get("google_service")
+                if not google_service:
+                    if event.resource_type == "sheet":
+                        google_service = GoogleService.SHEETS.value
+                    else:
+                        google_service = GoogleService.DRIVE.value
+
                 sync_op = SyncOperation(
+                    operation_id=operation_id,
                     band_id=event.band_id,
-                    operation_type=event.event_type,
-                    resource_id=event.resource_id,
+                    sync_type=event.event_type.value,
+                    google_service=google_service,
                     status=SyncStatus.IN_PROGRESS,
                     started_at=datetime.now(timezone.utc)
                 )
