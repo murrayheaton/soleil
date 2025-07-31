@@ -8,6 +8,16 @@
 ### Active
 - [ ] Create missing environment files (.env.example files) (added 2025-07-28)
 
+### Just Completed (2025-07-31)
+- [x] Fix profile loading issue & persistent storage (completed 2025-07-31)
+  - User: "Execute the PRP at PRPs/active/01_fix_profile_loading_issue.md"  
+  - Implemented robust ProfileService with atomic file operations and retry logic
+  - Added comprehensive logging to auth callback and profile endpoints
+  - Fixed frontend timeout/retry with exponential backoff (10s timeout, 3 retries)
+  - Replaced hardcoded localhost URLs with environment variables 
+  - Added proper error recovery with user-friendly messages
+  - Updated CORS for production domain support
+
 ### Just Completed (2025-07-30)
 - [x] Create chronological documentation system with user prompt references (completed 2025-07-30)
   - User: "all updates to root folder documentation should be formatted in chronological format... be sure to include specific refences to my prompts within our conversation"
