@@ -32,11 +32,12 @@ const navigation: NavItem[] = [
 
 export default function Layout({ children }: LayoutProps) {
   const pathname = usePathname();
-  // Short fade transition to keep animations smooth (~60fps)
+  const showNavigation = pathname !== '/login' && pathname !== '/';
+  // Short fade transition to keep animations smooth
   const variants = {
     initial: { opacity: 0 },
-    animate: { opacity: 1, transition: { duration: 0.25 } },
-    exit: { opacity: 0, transition: { duration: 0.25 } },
+    animate: { opacity: 1, transition: { duration: 0.15 } },
+    exit: { opacity: 0, transition: { duration: 0.15 } },
   };
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
@@ -76,6 +77,13 @@ export default function Layout({ children }: LayoutProps) {
     localStorage.setItem('offlineMode', offlineMode ? 'true' : 'false');
   }, [offlineMode]);
 
+  // Close mobile menu if navigation is hidden
+  useEffect(() => {
+    if (!showNavigation) {
+      setIsMobileMenuOpen(false);
+    }
+  }, [showNavigation]);
+
   // Handle sign out
   const handleSignOut = async () => {
     try {
@@ -108,14 +116,15 @@ export default function Layout({ children }: LayoutProps) {
             </div>
           </Link>
           
-          {/* Navigation Items - Desktop */}
+        {/* Navigation Items - Desktop */}
+        {showNavigation && (
           <ul className="nav-items hidden md:flex">
             {navigation.map(item => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
               return (
                 <li key={item.href}>
-                  <Link 
+                  <Link
                     href={item.href}
                     className={`nav-link ${isActive ? 'active' : ''}`}
                   >
@@ -126,16 +135,20 @@ export default function Layout({ children }: LayoutProps) {
               );
             })}
           </ul>
-          
-          {/* Sign Out Button */}
-          <button 
+        )}
+
+        {/* Sign Out Button */}
+        {showNavigation && (
+          <button
             onClick={handleSignOut}
             className="sign-out-btn hidden md:block"
           >
             Sign Out
           </button>
-          
-          {/* Mobile Menu Button */}
+        )}
+
+        {/* Mobile Menu Button */}
+        {showNavigation && (
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="md:hidden text-white hover:opacity-80 transition-opacity"
@@ -150,16 +163,17 @@ export default function Layout({ children }: LayoutProps) {
               </svg>
             )}
           </button>
+        )}
         </div>
         
         {/* Mobile Navigation Menu */}
-        {isMobileMenuOpen && (
+        {showNavigation && isMobileMenuOpen && (
           <div className="mobile-nav">
             {navigation.map(item => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
               return (
-                <Link 
+                <Link
                   key={item.href}
                   href={item.href}
                   className={`mobile-nav-link ${isActive ? 'active' : ''}`}
@@ -170,7 +184,7 @@ export default function Layout({ children }: LayoutProps) {
                 </Link>
               );
             })}
-            <button 
+            <button
               onClick={handleSignOut}
               className="mobile-nav-link text-left w-full"
             >
