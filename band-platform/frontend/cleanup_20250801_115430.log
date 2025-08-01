@@ -1,0 +1,2 @@
+Removing: .env.production.template
+  Reason: Duplicate of .env.example

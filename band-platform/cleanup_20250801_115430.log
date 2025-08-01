@@ -1,0 +1,8 @@
+Removing: Sole_Power_Live.command
+  Reason: macOS specific
+Removing: README_LAUNCHER.md
+  Reason: Launcher docs for removed files
+Removing: SOLEPOWER_DEPLOYMENT.md
+  Reason: Consolidate into DEPLOYMENT_GUIDE.md
+Removing directory: ../band-platform-backup
+  Reason: Old backup, use git for version control
