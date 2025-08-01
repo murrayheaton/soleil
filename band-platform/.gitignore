@@ -1,1 +1,2 @@
 band-platform/nginx/ssl/*.pem
+*.env.local
