@@ -18,6 +18,7 @@ google-auth-httplib2==0.1.1
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 PyJWT>=2.8
+itsdangerous>=2.0.0
 
 # Data validation and settings
 pydantic[email]==2.5.0
