@@ -1,0 +1,10 @@
+Removing: deploy-solepower.sh
+  Reason: Old deployment approach
+Removing: deploy-to-do.sh
+  Reason: Task list, not a script
+Removing: online-port.md
+  Reason: Move to documentation
+Removing: PRODUCT_VISION_2025-07-30.md
+  Reason: Outdated version
+Removing: INITIAL_google_drive_role_based_organization.md
+  Reason: Initial planning doc

@@ -5,15 +5,19 @@ This bypasses the circular dependency issue by creating a minimal FastAPI app.
 """
 
 import uvicorn
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.sessions import SessionMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 import os
 import io
+import json
 import logging
 import traceback
-from datetime import datetime
+import secrets
+from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Optional, Dict
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -34,16 +38,136 @@ app = FastAPI(
 )
 
 # CORS - Updated for production
+cors_origins = os.getenv('CORS_ORIGINS', '["https://solepower.live", "https://www.solepower.live"]')
+if isinstance(cors_origins, str):
+    import json
+    cors_origins = json.loads(cors_origins)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://solepower.live",
-        "https://www.solepower.live"
-    ],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Session configuration
+SESSION_SECRET = os.getenv('SESSION_SECRET', secrets.token_urlsafe(32))
+SESSION_MAX_AGE = 60 * 60 * 24 * 30  # 30 days
+
+# Add session middleware with better configuration
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=SESSION_SECRET,
+    session_cookie="soleil_session",
+    max_age=SESSION_MAX_AGE,
+    same_site="lax",
+    https_only=not os.getenv('DEBUG', 'False').lower() == 'true',
+)
+
+# Token storage with rotation support
+class TokenManager:
+    """Manage Google OAuth tokens with automatic refresh."""
+    
+    def __init__(self, token_file: str = "google_token.json"):
+        self.token_file = Path(token_file)
+        self.tokens: Dict = {}
+        self._load_tokens()
+    
+    def _load_tokens(self):
+        """Load tokens from file with error handling."""
+        if self.token_file.exists():
+            try:
+                with open(self.token_file, 'r') as f:
+                    self.tokens = json.load(f)
+            except Exception as e:
+                logger.error(f"Failed to load tokens: {e}")
+                self.tokens = {}
+    
+    def save_tokens(self, tokens: Dict):
+        """Save tokens with atomic write."""
+        temp_file = self.token_file.with_suffix('.tmp')
+        try:
+            with open(temp_file, 'w') as f:
+                json.dump(tokens, f, indent=2)
+            temp_file.replace(self.token_file)
+            self.tokens = tokens
+            logger.info("Tokens saved successfully")
+        except Exception as e:
+            logger.error(f"Failed to save tokens: {e}")
+            if temp_file.exists():
+                temp_file.unlink()
+    
+    def get_access_token(self) -> Optional[str]:
+        """Get valid access token, refreshing if needed."""
+        if not self.tokens:
+            return None
+        
+        # Check if token needs refresh
+        expires_at = self.tokens.get('expires_at', 0)
+        if datetime.now().timestamp() >= expires_at - 300:  # 5 min buffer
+            return self._refresh_token()
+        
+        return self.tokens.get('access_token')
+    
+    def _refresh_token(self) -> Optional[str]:
+        """Refresh the access token using refresh token."""
+        refresh_token = self.tokens.get('refresh_token')
+        if not refresh_token:
+            logger.error("No refresh token available")
+            return None
+        
+        try:
+            import requests
+            response = requests.post(
+                'https://oauth2.googleapis.com/token',
+                data={
+                    'client_id': os.getenv('GOOGLE_CLIENT_ID'),
+                    'client_secret': os.getenv('GOOGLE_CLIENT_SECRET'),
+                    'refresh_token': refresh_token,
+                    'grant_type': 'refresh_token'
+                }
+            )
+            
+            if response.status_code == 200:
+                new_tokens = response.json()
+                # Update tokens while preserving user info
+                self.tokens.update(new_tokens)
+                self.tokens['expires_at'] = (
+                    datetime.now().timestamp() + 
+                    new_tokens.get('expires_in', 3600)
+                )
+                self.save_tokens(self.tokens)
+                logger.info("Token refreshed successfully")
+                return new_tokens['access_token']
+            else:
+                logger.error(f"Token refresh failed: {response.text}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Token refresh error: {e}")
+            return None
+    
+    def clear_tokens(self):
+        """Clear all tokens (logout)."""
+        self.tokens = {}
+        if self.token_file.exists():
+            self.token_file.unlink()
+
+# Initialize token manager
+token_manager = TokenManager()
+
+# Dependency to check authentication
+async def require_auth(request: Request):
+    """Ensure user is authenticated."""
+    if not token_manager.get_access_token():
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    # Also check if we have user info
+    if not token_manager.tokens.get('user_email'):
+        raise HTTPException(status_code=401, detail="User info not found")
+    
+    return token_manager.tokens
 
 @app.get("/")
 async def root():
@@ -391,6 +515,51 @@ async def logout(request: Request):
         logger.error(f"Logout error: {e}")
         return JSONResponse(content={"status": "error", "message": "Failed to logout"})
 
+# Add automatic token refresh to Google API calls
+async def make_google_api_request(endpoint: str, params: Dict = None):
+    """Make authenticated request to Google API with retry."""
+    access_token = token_manager.get_access_token()
+    if not access_token:
+        raise HTTPException(status_code=401, detail="No valid access token")
+    
+    headers = {'Authorization': f'Bearer {access_token}'}
+    
+    import requests
+    for attempt in range(2):  # Try twice in case of token expiry
+        response = requests.get(endpoint, headers=headers, params=params)
+        
+        if response.status_code == 401 and attempt == 0:
+            # Token might be expired, try refreshing
+            access_token = token_manager._refresh_token()
+            if access_token:
+                headers['Authorization'] = f'Bearer {access_token}'
+                continue
+        
+        return response
+    
+    raise HTTPException(status_code=401, detail="Failed to authenticate with Google")
+
+@app.get("/api/auth/google/login")
+async def google_login():
+    """Initiate Google OAuth login flow."""
+    client_id = os.getenv('GOOGLE_CLIENT_ID')
+    redirect_uri = os.getenv('GOOGLE_REDIRECT_URI', 'https://solepower.live/api/auth/google/callback')
+    
+    if not client_id:
+        raise HTTPException(status_code=500, detail="Google OAuth not configured")
+    
+    auth_url = (
+        f"https://accounts.google.com/o/oauth2/auth"
+        f"?client_id={client_id}"
+        f"&response_type=code"
+        f"&scope=https://www.googleapis.com/auth/drive.readonly"
+        f"&redirect_uri={redirect_uri}"
+        f"&access_type=offline"
+        f"&prompt=consent"
+    )
+    
+    return RedirectResponse(url=auth_url)
+
 @app.get("/api/auth/google/callback")
 async def auth_callback(request: Request, code: str = None, error: str = None):
     """Handle Google OAuth callback with comprehensive logging."""
@@ -466,10 +635,14 @@ async def auth_callback(request: Request, code: str = None, error: str = None):
                 
                 logger.info(f"Profile {'created' if profile.get('is_new') else 'loaded'} in {profile_duration:.2f}s for {user_email}")
                 
-                # Save token to file for later use
-                import json
-                with open('google_token.json', 'w') as f:
-                    json.dump(tokens, f)
+                # Add expires_at timestamp for token management
+                tokens['expires_at'] = (
+                    datetime.now().timestamp() + 
+                    tokens.get('expires_in', 3600)
+                )
+                
+                # Save token using token manager
+                token_manager.save_tokens(tokens)
                 
                 logger.info(f"Auth callback successful for {user_email}")
                 return RedirectResponse(url=f"{frontend_url}?auth=success")

@@ -1,0 +1,26 @@
+Cleanup started at Fri Aug  1 11:54:30 PDT 2025
+Removing: minimal_oauth.py
+  Reason: Experimental OAuth, not used
+Removing: oauth_only_server.py
+  Reason: Partial implementation
+Removing: simple_oauth.py
+  Reason: Experimental version
+Removing: standalone_oauth.py
+  Reason: Test implementation
+Removing: test_drive_oauth.py
+  Reason: Test file
+Archived app/main.py - keeping app/services/* for reusable logic
+Removing: .env
+  Reason: Redundant with .env.example
+Removing: .env.production.bak
+  Reason: Old backup
+Removing: .env.production.template
+  Reason: Duplicate of .env.example
+Removing: .env.test
+  Reason: Not used
+Removing: Soleil_Backend.command
+  Reason: macOS specific, use Docker
+Removing: start_backend.sh
+  Reason: Redundant with Docker
+Removing: stop_backend.sh
+  Reason: Redundant with Docker
