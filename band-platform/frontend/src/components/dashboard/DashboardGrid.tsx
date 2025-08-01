@@ -72,19 +72,7 @@ export function DashboardGrid({ modules, userId }: DashboardGridProps) {
 
         @media (min-width: 1025px) {
           .dashboard-grid {
-            grid-template-columns: repeat(4, 1fr);
-          }
-          
-          /* Span modules across grid */
-          :global(.module-upcoming-gigs),
-          :global(.module-recent-repertoire) {
-            grid-column: span 2;
-            grid-row: span 2;
-          }
-          
-          :global(.module-pending-offers),
-          :global(.module-completed-gigs) {
-            grid-column: span 2;
+            grid-template-columns: repeat(2, 1fr);
           }
         }
       `}</style>
