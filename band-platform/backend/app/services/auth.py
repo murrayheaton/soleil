@@ -3,6 +3,31 @@ Authentication service with JWT tokens and Google OAuth integration.
 
 This module handles user authentication, JWT token management, and Google OAuth 2.0
 integration following the PRP requirements for secure band platform access.
+
+Example:
+    Basic authentication workflow:
+    
+    ```python
+    from app.services.auth import GoogleAuthService, JWTTokenService
+    
+    # OAuth authentication
+    auth_service = GoogleAuthService()
+    auth_url = await auth_service.get_authorization_url()
+    user = await auth_service.authenticate_user(auth_code)
+    
+    # JWT token management
+    token_service = JWTTokenService()
+    access_token = await token_service.create_access_token(user.id)
+    payload = await token_service.verify_token(access_token)
+    ```
+
+Security Features:
+    - Secure JWT token generation with expiration
+    - Google OAuth 2.0 integration with token refresh
+    - Role-based access control for band members
+    - Session management with secure cookies
+    - Audit logging for security events (no token exposure)
+    - Rate limiting for authentication attempts
 """
 
 import logging

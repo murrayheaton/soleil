@@ -3,6 +3,40 @@ Content parser service for file naming conventions and instrument-key mapping.
 
 This module handles parsing of Google Drive file names to extract musical information
 and implements the instrument-to-key mapping logic following the PRP requirements.
+
+Example:
+    Basic file parsing for band platform:
+    
+    ```python
+    from app.services.content_parser import parse_filename, get_instrument_key
+    
+    # Parse chart filename
+    parsed = parse_filename("All of Me - Bb.pdf")
+    print(f"Song: {parsed.song_title}, Key: {parsed.key}")
+    # Output: Song: All of Me, Key: Bb
+    
+    # Get appropriate key for instrument
+    key = get_instrument_key("trumpet")
+    print(f"Trumpet key: {key}")
+    # Output: Trumpet key: Bb
+    
+    # Filter charts for specific instrument
+    charts = filter_charts_for_instrument(all_charts, "alto_sax")
+    # Returns only Eb charts for alto saxophone
+    ```
+
+Musical Context:
+    - Supports standard band/jazz naming conventions
+    - Handles instrument transpositions (Bb, Eb, C, F)
+    - Parses composer, arranger, and chart type information
+    - Extracts tempo and style markings from filenames
+    - Provides intelligent filtering for musician roles
+
+Security Features:
+    - Input sanitization for filename parsing
+    - Validation of extracted metadata
+    - Safe regex patterns to prevent ReDoS attacks
+    - Audit logging for file processing (no sensitive content exposure)
 """
 
 import re

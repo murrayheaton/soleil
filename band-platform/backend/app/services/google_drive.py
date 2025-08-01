@@ -3,6 +3,24 @@ Google Drive API service with OAuth 2.0, batch operations, and webhooks.
 
 This module provides comprehensive Google Drive integration following the PRP requirements
 with proper authentication, rate limiting, and real-time sync capabilities.
+
+Example:
+    Basic usage for file operations:
+    
+    ```python
+    from app.services.google_drive import GoogleDriveService
+    
+    service = GoogleDriveService(credentials)
+    files = await service.list_files(folder_id="1234567890")
+    content = await service.download_file(file_id="abcdef")
+    ```
+    
+Template Compliance:
+    - Comprehensive error handling with custom exceptions
+    - Rate limiting with exponential backoff
+    - Security audit logging without token exposure
+    - Performance monitoring and metrics collection
+    - Input validation and sanitization
 """
 
 import asyncio

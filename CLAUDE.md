@@ -1,4 +1,65 @@
-### 🔄 Project Awareness & Context
+# Claude AI Assistant Rules
+
+## 🚨 CRITICAL: DevContainer Working Directory Rules
+
+**YOU ARE IN**: `/Users/murrayheaton/Documents/LocalCode/DevEnv/soleil/`  
+**YOU MUST**: Only make changes within this directory  
+**YOU CANNOT**: Modify files outside of the soleil project  
+
+### Pre-Work Directory Verification
+```bash
+# ALWAYS verify location before ANY operation
+pwd
+# MUST show: /Users/murrayheaton/Documents/LocalCode/DevEnv/soleil
+
+# If not in correct location
+cd /Users/murrayheaton/Documents/LocalCode/DevEnv/soleil
+
+# Verify git repository
+git remote -v
+# Should show: origin git@github.com:murrayheaton/soleil.git
+```
+
+## 📋 PRP (Project Requirement Prompt) Execution
+
+### PRP Workflow
+1. **Check for active PRPs**: `ls PRPs/active/`
+2. **Read PRP completely** before starting
+3. **Follow all Pre-Implementation Requirements**
+4. **Execute tasks in order**
+5. **Run all validation tests**
+6. **Archive completed PRPs**: 
+   ```bash
+   mv PRPs/active/[completed].md PRPs/archive/
+   git add PRPs/
+   git commit -m "chore: archive completed PRP [name]"
+   ```
+
+### Directory Boundaries
+- 🟢 **CAN MODIFY**: `/DevEnv/soleil/*`  
+- 🔴 **READ ONLY**: `/DevEnv/template-generator/*` (for reference)
+- 🚫 **FORBIDDEN**: All other directories in DevEnv
+
+### Reference External Templates
+```bash
+# Good - Reading for reference
+cat /Users/murrayheaton/Documents/LocalCode/DevEnv/template-generator/PRPs/INITIAL.md
+
+# Bad - Modifying external files
+echo "changes" > ../template-generator/anything.md  # NO!
+```
+
+### Important PRP Notes
+- PRPs are provided externally and placed in `PRPs/active/`
+- Do NOT generate PRPs - only execute existing ones
+- Each PRP is self-contained with all necessary context
+- Production endpoints: https://solepower.live
+- Backend API: https://solepower.live/api
+- Always create feature branches as specified in PRPs
+- Test thoroughly before deploying
+- Archive PRPs to `PRPs/archive/` when complete
+
+## 🔄 Project Awareness & Context
 - **Always read `PLANNING.md`** at the start of a new conversation to understand the project's architecture, goals, style, and constraints.
 - **Check `TASK.md`** before starting a new task. If the task isn't listed, add it with a brief description and today's date.
 - **Use consistent naming conventions, file structure, and architecture patterns** as described in `PLANNING.md`.

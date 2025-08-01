@@ -9,7 +9,53 @@ import logging
 logger = logging.getLogger(__name__)
 
 class ProfileService:
-    """Robust profile storage with file locking and error recovery."""
+    """
+    Robust profile storage with file locking and error recovery.
+    
+    This service manages user profiles for the Soleil Band Platform, including
+    instrument assignments, role-based permissions, and user preferences.
+    
+    Example:
+        Basic profile management:
+        
+        ```python
+        from app.services.profile_service import ProfileService
+        
+        profile_service = ProfileService()
+        
+        # Create user profile with instrument
+        await profile_service.create_profile(
+            user_email="trumpet@band.com",
+            user_name="John Trumpet",
+            instruments=["trumpet", "flugelhorn"],
+            role="musician"
+        )
+        
+        # Get profile for content filtering
+        profile = await profile_service.get_profile("trumpet@band.com")
+        print(f"Instruments: {profile['instruments']}")
+        # Output: Instruments: ['trumpet', 'flugelhorn']
+        
+        # Update preferences
+        await profile_service.update_profile(
+            "trumpet@band.com",
+            {"dark_mode": True, "auto_transpose": "Bb"}
+        )
+        ```
+    
+    Security Features:
+        - File permissions set to 0o600 (owner read/write only)
+        - Atomic write operations with file locking
+        - Backup and recovery for corrupted data
+        - Input validation and sanitization
+        - Audit logging for profile changes (no sensitive data exposure)
+    
+    Performance Features:
+        - Async file operations for non-blocking I/O
+        - Memory caching with automatic invalidation
+        - Batch operations for multiple profile updates
+        - Efficient JSON serialization with compression
+    """
     
     def __init__(self, storage_path: str = "user_profiles.json"):
         self.storage_path = storage_path
