@@ -1,5 +1,39 @@
 'use client';
 
+/**
+ * Main layout component for Soleil Band Platform
+ * 
+ * Provides responsive navigation, offline indicators, and role-based UI
+ * optimized for musicians using tablets and phones during performances.
+ * 
+ * Features:
+ * - Mobile-first responsive design with touch-friendly navigation
+ * - Offline mode indicator and functionality toggle
+ * - Smooth animations optimized for 60fps performance
+ * - Role-based navigation filtering (musicians vs admins)
+ * - Dark mode support for stage environments
+ * - PWA-aware with installation prompts and updates
+ * 
+ * Usage:
+ * ```tsx
+ * import Layout from '@/components/Layout'
+ * 
+ * export default function Page() {
+ *   return (
+ *     <Layout>
+ *       <h1>Dashboard Content</h1>
+ *     </Layout>
+ *   )
+ * }
+ * ```
+ * 
+ * Accessibility:
+ * - ARIA labels for screen readers
+ * - Keyboard navigation support
+ * - High contrast mode compatibility
+ * - Focus management for mobile users
+ */
+
 import React, { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
