@@ -1,2 +1,4 @@
 band-platform/nginx/ssl/*.pem
 *.env.local
+.credentials_backup/
+oauth_credentials.enc

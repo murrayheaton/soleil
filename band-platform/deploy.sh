@@ -24,6 +24,36 @@ EMAIL=$2
 
 echo -e "${GREEN}🚀 Starting deployment for domain: $DOMAIN${NC}"
 
+# Add missing BLUE color
+BLUE='\033[0;34m'
+
+# OAuth Credentials Setup
+echo -e "${BLUE}🔑 OAuth Credentials Setup${NC}"
+echo "Do you need to configure OAuth credentials?"
+echo "1) Enter credentials interactively"
+echo "2) Import encrypted credentials file"
+echo "3) Skip (credentials already configured)"
+read -p "Select option (1-3): " OAUTH_OPTION
+
+case $OAUTH_OPTION in
+    1)
+        # Make script executable and run
+        chmod +x scripts/oauth_credentials_manager.sh
+        ./scripts/oauth_credentials_manager.sh
+        ;;
+    2)
+        # Import encrypted credentials
+        chmod +x scripts/credentials_transfer.sh
+        ./scripts/credentials_transfer.sh import
+        ;;
+    3)
+        echo -e "${YELLOW}⚠️  Skipping OAuth setup. Ensure credentials are configured!${NC}"
+        ;;
+    *)
+        echo -e "${RED}Invalid option. Continuing without OAuth setup.${NC}"
+        ;;
+esac
+
 # Function to generate secure password
 generate_password() {
     openssl rand -base64 32

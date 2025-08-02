@@ -61,7 +61,8 @@
       "Bash(git fetch:*)",
       "Bash(diff:*)",
       "Bash(rsync:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(./scripts/validate_oauth.sh:*)"
     ],
     "deny": []
   }
