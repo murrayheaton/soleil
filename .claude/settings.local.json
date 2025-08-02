@@ -63,7 +63,8 @@
       "Bash(rsync:*)",
       "Bash(git reset:*)",
       "Bash(./scripts/validate_oauth.sh:*)",
-      "Bash(echo \"Exit code: $?\")"
+      "Bash(echo \"Exit code: $?\")",
+      "Bash(./scripts/credentials_transfer.sh:*)"
     ],
     "deny": []
   }
