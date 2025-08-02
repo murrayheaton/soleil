@@ -47,6 +47,7 @@ services:
     env_file:
       - ./backend/.env.production
       - ./backend/.env.local
+      - /etc/soleil/oauth.env
     environment:
       - DATABASE_URL=postgresql+asyncpg://band_user:${DB_PASSWORD:-change_this_in_production}@postgres:5432/band_platform
       - REDIS_URL=redis://:${REDIS_PASSWORD:-change_this_in_production}@redis:6379/0
@@ -80,6 +81,7 @@ services:
     restart: always
     env_file:
       - ./frontend/.env.production
+      - /etc/soleil/oauth.env
     depends_on:
       - backend
     networks:

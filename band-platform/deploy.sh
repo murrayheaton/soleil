@@ -27,6 +27,16 @@ echo -e "${GREEN}🚀 Starting deployment for domain: $DOMAIN${NC}"
 # Add missing BLUE color
 BLUE='\033[0;34m'
 
+# Function to check persistent credentials
+check_persistent_credentials() {
+    if [ -f "/etc/soleil/oauth.env" ]; then
+        echo -e "${GREEN}✓ Persistent OAuth credentials found${NC}"
+        return 0
+    else
+        return 1
+    fi
+}
+
 # Function to generate secure password
 generate_password() {
     openssl rand -base64 32
@@ -60,41 +70,57 @@ sed -i.bak "s/YOUR_DOMAIN.com/$DOMAIN/g" backend/.env.production
 sed -i.bak "s/YOUR_DOMAIN.com/$DOMAIN/g" frontend/.env.production
 echo -e "${GREEN}✓ Environment files created and updated${NC}"
 
-# OAuth Credentials Setup - AFTER environment files are created
-echo -e "${BLUE}🔑 OAuth Credentials Setup${NC}"
-echo "Do you need to configure OAuth credentials?"
-echo "1) Enter credentials interactively"
-echo "2) Import encrypted credentials file"
-echo "3) Skip (credentials already configured)"
-read -p "Select option (1-3): " OAUTH_OPTION
+# OAuth Credentials Setup - Check for persistent credentials first
+if check_persistent_credentials; then
+    echo -e "${BLUE}🔑 Using persistent OAuth credentials from /etc/soleil/oauth.env${NC}"
+else
+    echo -e "${BLUE}🔑 OAuth Credentials Setup${NC}"
+    echo "Do you need to configure OAuth credentials?"
+    echo "1) Enter credentials interactively"
+    echo "2) Import encrypted credentials file"
+    echo "3) Skip (credentials already configured)"
+    read -p "Select option (1-3): " OAUTH_OPTION
 
-case $OAUTH_OPTION in
-    1)
-        # Make script executable and run
-        chmod +x scripts/oauth_credentials_manager.sh
-        ./scripts/oauth_credentials_manager.sh
-        ;;
-    2)
-        # Import encrypted credentials
-        chmod +x scripts/credentials_transfer.sh
-        ./scripts/credentials_transfer.sh import
-        ;;
-    3)
-        echo -e "${YELLOW}⚠️  Skipping OAuth setup. Ensure credentials are configured!${NC}"
-        ;;
-    *)
-        echo -e "${RED}Invalid option. Continuing without OAuth setup.${NC}"
-        ;;
-esac
+    case $OAUTH_OPTION in
+        1)
+            # Make script executable and run
+            chmod +x scripts/oauth_credentials_manager.sh
+            ./scripts/oauth_credentials_manager.sh
+            ;;
+        2)
+            # Import encrypted credentials
+            chmod +x scripts/credentials_transfer.sh
+            ./scripts/credentials_transfer.sh import
+            ;;
+        3)
+            echo -e "${YELLOW}⚠️  Skipping OAuth setup. Ensure credentials are configured!${NC}"
+            ;;
+        *)
+            echo -e "${RED}Invalid option. Continuing without OAuth setup.${NC}"
+            ;;
+    esac
+fi
 
 # Validate OAuth configuration before proceeding
 echo -e "${YELLOW}🔍 Validating OAuth configuration...${NC}"
-if ./scripts/validate_oauth.sh; then
-    echo -e "${GREEN}✓ OAuth configuration valid${NC}"
+if check_persistent_credentials; then
+    # Use persistent validation
+    if ./scripts/validate_oauth_persistent.sh; then
+        echo -e "${GREEN}✓ OAuth configuration valid${NC}"
+    else
+        echo -e "${RED}❌ OAuth configuration invalid!${NC}"
+        echo -e "${YELLOW}Please check /etc/soleil/oauth.env${NC}"
+        exit 1
+    fi
 else
-    echo -e "${RED}❌ OAuth configuration invalid!${NC}"
-    echo -e "${YELLOW}Please configure OAuth credentials before continuing.${NC}"
-    exit 1
+    # Use traditional validation
+    if ./scripts/validate_oauth.sh; then
+        echo -e "${GREEN}✓ OAuth configuration valid${NC}"
+    else
+        echo -e "${RED}❌ OAuth configuration invalid!${NC}"
+        echo -e "${YELLOW}Please configure OAuth credentials before continuing.${NC}"
+        exit 1
+    fi
 fi
 
 # Build and start containers
