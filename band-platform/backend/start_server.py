@@ -573,11 +573,11 @@ async def auth_callback(request: Request, code: str = None, error: str = None):
     
     if error:
         logger.error(f"Auth callback received error: {error}")
-        return RedirectResponse(url=f"{frontend_url}?auth=error&message=Authentication+failed")
+        return RedirectResponse(url=f"{frontend_url}/login?auth=error&message={error}")
     
     if not code:
         logger.error("Auth callback missing authorization code")
-        return RedirectResponse(url=f"{frontend_url}?auth=error&message=No+authorization+code")
+        return RedirectResponse(url=f"{frontend_url}/login?auth=error&message=No+authorization+code")
     
     try:
         logger.info(f"Auth code received: yes")
@@ -645,18 +645,24 @@ async def auth_callback(request: Request, code: str = None, error: str = None):
                 token_manager.save_tokens(tokens)
                 
                 logger.info(f"Auth callback successful for {user_email}")
-                return RedirectResponse(url=f"{frontend_url}?auth=success")
+                
+                # Log the user for potential access request tracking
+                logger.info(f"User login attempt: {user_email} - Name: {user_info.get('name', 'Unknown')}")
+                
+                # For now, allow all authenticated Google users
+                # In production, you would check against an authorized users list
+                return RedirectResponse(url=f"{frontend_url}/login?auth=success")
             else:
                 logger.error(f"Failed to get user info: {user_info_response.status_code}")
-                return RedirectResponse(url=f"{frontend_url}?auth=error&message=Failed+to+get+user+info")
+                return RedirectResponse(url=f"{frontend_url}/login?auth=error&message=Failed+to+get+user+info")
         else:
             logger.error(f"Token exchange failed: {tokens}")
-            return RedirectResponse(url=f"{frontend_url}?auth=error&message=Failed+to+get+access+token")
+            return RedirectResponse(url=f"{frontend_url}/login?auth=error&message=Failed+to+get+access+token")
             
     except Exception as e:
         logger.error(f"Auth callback failed: {str(e)}")
         logger.error(f"Traceback: {traceback.format_exc()}")
-        return RedirectResponse(url=f"{frontend_url}?auth=error&message=Authentication+error")
+        return RedirectResponse(url=f"{frontend_url}/login?auth=error&message=Authentication+error")
     
     finally:
         duration = (datetime.now() - start_time).total_seconds()
