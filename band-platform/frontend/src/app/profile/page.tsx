@@ -150,7 +150,8 @@ export default function BandPlatform() {
       return;
     }
 
-    const redirectUri = `${apiUrl}/api/auth/google/callback`;
+    const baseUrl = apiUrl.replace(/\/api$/, ''); // Remove trailing /api if present
+    const redirectUri = `${baseUrl}/api/auth/google/callback`;
     const authUrl =
       `https://accounts.google.com/o/oauth2/auth?client_id=${clientId}` +
       `&response_type=code&scope=https://www.googleapis.com/auth/drive.readonly` +

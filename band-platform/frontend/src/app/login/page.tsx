@@ -59,11 +59,22 @@ export default function LoginPage() {
       }
 
       // Build OAuth URL
-      const redirectUri = `${apiUrl}/api/auth/google/callback`;
+      // Fix: apiUrl already includes /api, so don't add it again
+      const baseUrl = apiUrl.replace(/\/api$/, ''); // Remove trailing /api if present
+      const redirectUri = `${baseUrl}/api/auth/google/callback`;
+      addDebug(`Building redirect URI: ${redirectUri}`);
+      
       const scope = encodeURIComponent('https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile');
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
 
-      addDebug(`Redirecting to: ${authUrl.substring(0, 50)}...`);
+      addDebug(`Full OAuth URL: ${authUrl}`);
+      console.log('OAuth Configuration:', {
+        clientId,
+        apiUrl,
+        redirectUri,
+        encodedRedirectUri: encodeURIComponent(redirectUri),
+        fullAuthUrl: authUrl
+      });
       
       // Add small delay to ensure state updates are visible
       setTimeout(() => {

@@ -65,7 +65,8 @@
       "Bash(./scripts/validate_oauth.sh:*)",
       "Bash(echo \"Exit code: $?\")",
       "Bash(./scripts/credentials_transfer.sh:*)",
-      "Bash(true)"
+      "Bash(true)",
+      "Bash(./scripts/fix_oauth_immediate.sh:*)"
     ],
     "deny": []
   }

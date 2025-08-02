@@ -545,6 +545,8 @@ async def google_login():
     client_id = os.getenv('GOOGLE_CLIENT_ID')
     redirect_uri = os.getenv('GOOGLE_REDIRECT_URI', 'https://solepower.live/api/auth/google/callback')
     
+    logger.info(f"Google login initiated - Client ID: {client_id[:20]}... Redirect URI: {redirect_uri}")
+    
     if not client_id:
         raise HTTPException(status_code=500, detail="Google OAuth not configured")
     
@@ -558,6 +560,7 @@ async def google_login():
         f"&prompt=consent"
     )
     
+    logger.info(f"Redirecting to Google OAuth: {auth_url}")
     return RedirectResponse(url=auth_url)
 
 @app.get("/api/auth/google/callback")
@@ -584,12 +587,15 @@ async def auth_callback(request: Request, code: str = None, error: str = None):
         
         # Exchange code for tokens
         import requests
+        redirect_uri = os.getenv('GOOGLE_REDIRECT_URI', 'https://solepower.live/api/auth/google/callback')
+        logger.info(f"Using redirect URI for token exchange: {redirect_uri}")
+        
         token_data = {
             'client_id': os.getenv('GOOGLE_CLIENT_ID'),
             'client_secret': os.getenv('GOOGLE_CLIENT_SECRET'),
             'code': code,
             'grant_type': 'authorization_code',
-            'redirect_uri': os.getenv('GOOGLE_REDIRECT_URI', 'https://solepower.live/api/auth/google/callback')
+            'redirect_uri': redirect_uri
         }
         
         token_start = datetime.now()
