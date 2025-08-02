@@ -123,6 +123,13 @@ else
     fi
 fi
 
+# Ensure frontend has credentials before building
+if [ -f "./scripts/ensure_frontend_credentials.sh" ]; then
+    echo -e "${YELLOW}🔑 Ensuring frontend has OAuth credentials...${NC}"
+    chmod +x ./scripts/ensure_frontend_credentials.sh
+    ./scripts/ensure_frontend_credentials.sh
+fi
+
 # Build and start containers
 echo -e "${YELLOW}🐳 Building and starting Docker containers...${NC}"
 docker-compose -f docker-compose.production.yml up -d --build

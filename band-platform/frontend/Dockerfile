@@ -15,6 +15,9 @@ RUN npm ci
 
 COPY . .
 
+# Copy environment file if it exists (for build-time env vars)
+COPY .env.production* ./
+
 # Build the application
 ENV NEXT_TELEMETRY_DISABLED 1
 RUN npm run build
