@@ -8,29 +8,6 @@ import {
 import { useSearchParams } from 'next/navigation';
 import ProfileOnboarding from '@/components/ProfileOnboarding';
 
-interface ChartFile {
-  id: string;
-  name: string;
-  type: string;
-  link: string;
-  is_placeholder?: boolean;
-}
-
-interface AudioFile {
-  id: string;
-  name: string;
-  link: string;
-  is_placeholder?: boolean;
-}
-
-interface Song {
-  song_title: string;
-  charts: ChartFile[];
-  audio: AudioFile[];
-  total_files: number;
-}
-
-
 interface UserProfile {
   email: string;
   name: string;
@@ -150,7 +127,7 @@ function ProfileContent() {
       } else {
         setError(data.message || 'Failed to update profile');
       }
-    } catch (error) {
+    } catch {
       setError('Failed to update profile. Please try again.');
     }
   };

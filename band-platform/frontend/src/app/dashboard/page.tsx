@@ -35,8 +35,8 @@ export default function DashboardPage() {
             setUser(profile);
           }
         }
-      } catch (err) {
-        console.error('Failed to load profile:', err);
+      } catch {
+        // Failed to load profile - using default
         // For now, use a default user to keep the UI functional
         setUser({
           email: 'user@example.com',
@@ -108,7 +108,7 @@ export default function DashboardPage() {
         </p>
       </header>
 
-      <DashboardGrid modules={moduleRegistry} />
+      <DashboardGrid modules={moduleRegistry} userId={displayUser.email} />
     </div>
   );
 }

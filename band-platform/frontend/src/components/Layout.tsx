@@ -75,8 +75,7 @@ export default function Layout({ children }: LayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [, setIsOnline] = useState(true);
   const [offlineMode, setOfflineMode] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(true); // Default to true for now
-  const [isCheckingAuth, setIsCheckingAuth] = useState(false); // Skip auth check for now
+  // Authentication state removed - handling at page level for now
 
   // Initialize offline mode from localStorage
   useEffect(() => {
@@ -128,7 +127,7 @@ export default function Layout({ children }: LayoutProps) {
         localStorage.clear();
         window.location.href = '/';
       }
-    } catch (error) {
+    } catch {
       // Fallback: clear storage and redirect anyway
       localStorage.clear();
       window.location.href = '/';

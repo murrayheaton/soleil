@@ -71,7 +71,7 @@ export default function RepertoirePage() {
         setError(data.message || 'Failed to load profile');
         return null;
       }
-    } catch (err) {
+    } catch {
       setError('Failed to connect to backend.');
       return null;
     }
@@ -94,7 +94,7 @@ export default function RepertoirePage() {
       } else {
         setError(data.message || 'Failed to load files');
       }
-    } catch (err) {
+    } catch {
       setError('Failed to connect to backend. Make sure the backend is running on port 8000.');
     } finally {
       setLoading(false);

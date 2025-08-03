@@ -5,44 +5,25 @@ import { useEffect, useState } from 'react';
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [debugInfo, setDebugInfo] = useState<string[]>([]);
-
-  // Add debug logging
-  const addDebug = (message: string) => {
-    console.log(`[Login Debug] ${message}`);
-    setDebugInfo(prev => [...prev, `${new Date().toISOString()}: ${message}`]);
-  };
+  // Debug logging removed for production
 
   useEffect(() => {
-    addDebug('Login page mounted');
-    
-    // Check environment variables
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    
-    addDebug(`Client ID: ${clientId ? 'Present' : 'Missing'}`);
-    addDebug(`API URL: ${apiUrl || 'Missing'}`);
-
     // Check for auth callback parameters
     const urlParams = new URLSearchParams(window.location.search);
     const authParam = urlParams.get('auth');
     const messageParam = urlParams.get('message');
     
     if (authParam === 'success') {
-      addDebug('Auth success detected, redirecting to profile');
       window.location.href = '/profile?auth=success';
     } else if (authParam === 'error') {
-      addDebug(`Auth error: ${messageParam || 'Unknown error'}`);
       setError(decodeURIComponent(messageParam || 'Authentication failed'));
     } else if (authParam === 'unauthorized') {
-      addDebug('User unauthorized - needs access request');
       setError('Your account is not authorized. Please contact an administrator to request access.');
     }
   }, []);
 
   const handleGoogleSignIn = async () => {
     try {
-      addDebug('Sign in button clicked');
       setIsLoading(true);
       setError(null);
 
@@ -51,30 +32,17 @@ export default function LoginPage() {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live/api';
 
       if (!clientId) {
-        const errorMsg = 'Google OAuth Client ID is not configured';
-        addDebug(`Error: ${errorMsg}`);
-        setError(errorMsg);
+        setError('Google OAuth Client ID is not configured');
         setIsLoading(false);
         return;
       }
 
       // Build OAuth URL
-      // Fix: apiUrl already includes /api, so don't add it again
       const baseUrl = apiUrl.replace(/\/api$/, ''); // Remove trailing /api if present
       const redirectUri = `${baseUrl}/api/auth/google/callback`;
-      addDebug(`Building redirect URI: ${redirectUri}`);
       
       const scope = encodeURIComponent('https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile');
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
-
-      addDebug(`Full OAuth URL: ${authUrl}`);
-      console.log('OAuth Configuration:', {
-        clientId,
-        apiUrl,
-        redirectUri,
-        encodedRedirectUri: encodeURIComponent(redirectUri),
-        fullAuthUrl: authUrl
-      });
       
       // Add small delay to ensure state updates are visible
       setTimeout(() => {
@@ -83,7 +51,6 @@ export default function LoginPage() {
       
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Failed to initiate sign in';
-      addDebug(`Exception: ${errorMsg}`);
       setError(errorMsg);
       setIsLoading(false);
     }
@@ -131,15 +98,6 @@ export default function LoginPage() {
             </button>
           </div>
 
-          {/* Debug info in development */}
-          {process.env.NODE_ENV === 'development' && debugInfo.length > 0 && (
-            <div className="mt-6 p-3 rounded text-xs" style={{backgroundColor: '#1a1a1a', border: '1px solid #333'}}>
-              <p className="text-gray-500 mb-2">Debug Log:</p>
-              {debugInfo.slice(-5).map((info, idx) => (
-                <p key={idx} className="text-gray-600 font-mono">{info}</p>
-              ))}
-            </div>
-          )}
         </div>
       </div>
     </div>
