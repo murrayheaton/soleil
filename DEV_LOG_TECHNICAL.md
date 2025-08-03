@@ -2,6 +2,41 @@
 
 ## Session 5 - August 3, 2025
 
+### Root Page Redirect and API Endpoint Standardization
+
+**User Request**: "using the framework in /Users/murrayheaton/Documents/GitHub/soleil/.claude/execute-soleil-prp.md can you implement 02_fix_root_redirect_and_api_endpoints.md"
+
+#### Implementation Details
+
+**Files Modified**:
+1. `band-platform/frontend/src/app/page.tsx`
+2. `band-platform/frontend/src/app/profile/page.tsx`
+
+**Root Page Changes** (`page.tsx`):
+- Fixed API endpoint from `/api/users/profile` to `/api/user/profile` (line 18)
+- Replaced complex retry logic with simple authentication check
+- Removed MAX_RETRIES, PROFILE_LOAD_TIMEOUT constants
+- Simplified component from 152 lines to 78 lines
+- Direct redirects: 401 → `/login`, success → `/dashboard`
+
+**Profile Page Changes** (`profile/page.tsx`):
+- Added `isNewUser` state to track first-time users
+- Added 404 status handling for non-existent profiles
+- Inserted welcome message component for new users
+- Preserves existing authentication and profile editing functionality
+
+**Technical Rationale**:
+- API endpoint inconsistency was causing 404 errors on root page
+- Retry logic was unnecessary for simple auth checks
+- Immediate redirects improve perceived performance
+- New user detection enables better onboarding flow
+
+**Validation**:
+- Production build successful (`npm run build`)
+- No TypeScript errors in modified files
+- API endpoint consistency verified across all pages
+- PWA functionality preserved
+
 ### Login Page Debug Element Cleanup
 
 **User Request**: "can you build a prp that fixes a few front end issues... we need to get rid of the button that says test button responsiveness on the login page, and we also need to get rid of the tag line"
