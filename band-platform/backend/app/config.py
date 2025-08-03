@@ -5,6 +5,7 @@ This module uses pydantic-settings for environment variable management
 following the PRP requirements for Google API credentials and JWT settings.
 """
 
+import os
 from pydantic import Field, ConfigDict
 from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
@@ -67,7 +68,11 @@ class Settings(BaseSettings):
         description="Google OAuth 2.0 Client Secret",
     )
     google_redirect_uri: str = Field(
-        default="https://solepower.live/api/auth/google/callback",
+        default_factory=lambda: (
+            "http://localhost:8000/api/auth/google/callback"
+            if os.getenv("DEBUG", "false").lower() == "true"
+            else "https://solepower.live/api/auth/google/callback"
+        ),
         description="Google OAuth redirect URI"
     )
     

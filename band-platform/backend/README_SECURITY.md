@@ -12,7 +12,8 @@ For security reasons, OAuth credentials and API keys are not included in the rep
 2. Edit `.env` and add your credentials:
    - `GOOGLE_CLIENT_ID`: Your Google OAuth2 client ID
    - `GOOGLE_CLIENT_SECRET`: Your Google OAuth2 client secret
-   - `GOOGLE_REDIRECT_URI`: Should be `http://localhost:8000/api/auth/google/callback` for local development
+   - `GOOGLE_REDIRECT_URI`: Defaults to the production callback but falls back to `http://localhost:8000/api/auth/google/callback` when `DEBUG=true`
+   - `CORS_ORIGINS`: Defaults include `https://solepower.live`, `https://www.solepower.live`, and localhost variants (`http://localhost`, `http://localhost:3000`, `http://localhost:8000`)
    - `GOOGLE_DRIVE_SOURCE_FOLDER_ID`: The ID of your Google Drive folder containing charts
 
 ## Files Not in Repository
