@@ -37,8 +37,11 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS - Updated for production
-cors_origins = os.getenv('CORS_ORIGINS', '["https://solepower.live", "https://www.solepower.live"]')
+# CORS - Updated for production and local development
+cors_origins = os.getenv(
+    'CORS_ORIGINS',
+    '["https://solepower.live", "https://www.solepower.live", "http://localhost", "http://localhost:3000", "http://localhost:8000"]'
+)
 if isinstance(cors_origins, str):
     import json
     cors_origins = json.loads(cors_origins)
