@@ -3,12 +3,15 @@ import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
-  
+
+  const normalizedPathname =
+    pathname !== '/' && pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+
   // Define public routes that don't require authentication
   const publicRoutes = ['/login'];
-  
+
   // If accessing login page, always allow it through (no redirects)
-  if (pathname === '/login') {
+  if (normalizedPathname === '/login') {
     // If already authenticated, redirect away from login
     const isAuthenticated = request.cookies.get('soleil_auth') || 
                            searchParams.get('auth') === 'success';
@@ -31,18 +34,18 @@ export function middleware(request: NextRequest) {
                          searchParams.get('auth') === 'success';
   
   // If trying to access a protected route without authentication, redirect to login
-  const isPublicRoute = publicRoutes.includes(pathname);
+  const isPublicRoute = publicRoutes.includes(normalizedPathname);
   if (!isPublicRoute && !isAuthenticated) {
-    const loginUrl = new URL('/login', request.url);
+    const loginUrl = new URL('/login/', request.url);
     // Only set redirect parameter for meaningful paths
-    if (pathname !== '/') {
-      loginUrl.searchParams.set('redirect', pathname);
+    if (normalizedPathname !== '/') {
+      loginUrl.searchParams.set('redirect', normalizedPathname);
     }
     return NextResponse.redirect(loginUrl);
   }
   
   // If authenticated and accessing root, redirect based on profile status
-  if (isAuthenticated && pathname === '/') {
+  if (isAuthenticated && normalizedPathname === '/') {
     const hasProfile = request.cookies.get('soleil_profile_complete');
     
     if (hasProfile) {
