@@ -89,11 +89,6 @@ export default function LoginPage() {
     }
   };
 
-  // Test button click handler
-  const handleTestClick = () => {
-    addDebug('Test button clicked - UI is responsive');
-    alert('Button click works! Check console for debug info.');
-  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center" style={{backgroundColor: '#171717', paddingBottom: '25vh'}}>
@@ -134,14 +129,6 @@ export default function LoginPage() {
                 </>
               )}
             </button>
-
-            {/* Debug test button */}
-            <button
-              onClick={handleTestClick}
-              className="w-full bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm px-4 py-2 rounded transition-colors"
-            >
-              Test Button Responsiveness
-            </button>
           </div>
 
           {/* Debug info in development */}
@@ -154,11 +141,6 @@ export default function LoginPage() {
             </div>
           )}
         </div>
-
-        {/* Always visible debug hint */}
-        <p className="text-center text-gray-600 text-xs mt-4">
-          Check browser console for authentication debug information
-        </p>
       </div>
     </div>
   );
