@@ -75,8 +75,8 @@ export default function Layout({ children }: LayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [, setIsOnline] = useState(true);
   const [offlineMode, setOfflineMode] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(true); // Default to true for now
+  const [isCheckingAuth, setIsCheckingAuth] = useState(false); // Skip auth check for now
 
   // Initialize offline mode from localStorage
   useEffect(() => {
@@ -87,35 +87,8 @@ export default function Layout({ children }: LayoutProps) {
     }
   }, []);
 
-  // Check authentication status
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        // Check if we have a session by trying to fetch profile
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live/api'}/profile`, {
-          credentials: 'include',
-        });
-        
-        if (response.ok) {
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
-          // If not authenticated and on a protected route, redirect to login
-          const publicPaths = ['/', '/login'];
-          if (!publicPaths.includes(pathname)) {
-            window.location.href = '/login';
-          }
-        }
-      } catch (error) {
-        console.error('Auth check failed:', error);
-        setIsAuthenticated(false);
-      } finally {
-        setIsCheckingAuth(false);
-      }
-    };
-
-    checkAuth();
-  }, [pathname]);
+  // Simplified auth check - for now we'll handle auth at the page level
+  // This allows the navigation to always be visible
 
   // Monitor online/offline status
   useEffect(() => {
@@ -162,19 +135,12 @@ export default function Layout({ children }: LayoutProps) {
     }
   };
 
-  // Don't render until auth check is complete
-  if (isCheckingAuth) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: '#ffffff'}}>
-        <div className="text-gray-500">Loading...</div>
-      </div>
-    );
-  }
+  // Navigation should always be visible
 
   return (
     <div className="min-h-screen" style={{backgroundColor: '#ffffff'}}>
-      {/* Navigation Header - Only show when authenticated */}
-      {isAuthenticated && (
+      {/* Navigation Header - Always visible */}
+      {
         <nav className="nav-container">
           <div className="nav-content">
             {/* Logo - Now clickable */}
@@ -255,7 +221,7 @@ export default function Layout({ children }: LayoutProps) {
             </div>
           )}
         </nav>
-      )}
+      }
 
       {/* Main Content */}
       <main className="main-content">

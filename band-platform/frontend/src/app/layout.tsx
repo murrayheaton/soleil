@@ -14,9 +14,8 @@ export default function RootLayout({
 }>) {
   const pathname = usePathname();
   
-  // Pages that should not have the navigation layout
-  const publicPages = ['/', '/login'];
-  const isPublicPage = publicPages.includes(pathname);
+  // Login page has its own layout
+  const isLoginPage = pathname === '/login';
   
   return (
     <html lang="en" suppressHydrationWarning>
@@ -34,7 +33,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
       </head>
       <body className={`${inter.className} antialiased`}>
-        {isPublicPage ? children : <Layout>{children}</Layout>}
+        {isLoginPage ? children : <Layout>{children}</Layout>}
       </body>
     </html>
   );

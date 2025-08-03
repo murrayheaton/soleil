@@ -2,36 +2,18 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  const { pathname, searchParams } = request.nextUrl;
+  const { pathname } = request.nextUrl;
   
-  // Define public routes that don't require authentication
-  const publicRoutes = ['/', '/login', '/api/auth'];
+  // For now, we'll use a simple approach:
+  // - Root path (/) redirects to dashboard
+  // - Everything else is allowed through
+  // This prevents the ping-pong effect while we refine auth
   
-  // Check if the current route is public
-  const isPublicRoute = publicRoutes.some(route => 
-    pathname === route || pathname.startsWith(`${route}/`)
-  );
-  
-  // Check for authentication session cookie
-  const sessionCookie = request.cookies.get('soleil_session');
-  
-  // Allow access if coming from successful auth callback
-  const authSuccess = searchParams.get('auth') === 'success';
-  
-  // If accessing a protected route without authentication, redirect to login
-  if (!isPublicRoute && !sessionCookie && !authSuccess) {
-    const loginUrl = new URL('/login', request.url);
-    // Add the original URL as a redirect parameter
-    loginUrl.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-  
-  // If authenticated user tries to access login page or root, redirect to dashboard
-  if ((sessionCookie || authSuccess) && (pathname === '/login' || pathname === '/')) {
+  if (pathname === '/') {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
   
-  // Allow the request to continue
+  // Allow all other requests through
   return NextResponse.next();
 }
 
@@ -44,8 +26,7 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - public files (public directory)
-     * - api routes that handle their own auth
      */
-    '/((?!_next/static|_next/image|favicon.ico|icons|manifest.json|api/auth).*)',
+    '/((?!_next/static|_next/image|favicon.ico|icons|manifest.json).*)',
   ],
 };

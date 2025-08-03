@@ -91,12 +91,12 @@ export default function LoginPage() {
 
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center" style={{backgroundColor: '#171717', paddingBottom: '25vh'}}>
+    <div className="flex items-center justify-center" style={{minHeight: 'calc(100vh - 5rem)', paddingBottom: '10vh'}}>
       <div className="max-w-md w-full mx-4">
         <div className="rounded border p-8 shadow-xl" style={{backgroundColor: '#262626', borderColor: '#404040'}}>
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-black text-white mb-0">Sole Power <span className="font-thin">Live</span></h1>
-            <p className="text-gray-400 text-sm font-light -mt-1">Assets access</p>
+            <h1 className="text-2xl font-light text-white mb-2">Welcome to Soleil</h1>
+            <p className="text-gray-400 text-sm">Sign in to access your band resources</p>
           </div>
 
           {error && (
