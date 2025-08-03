@@ -11,6 +11,8 @@ import ProfileOnboarding from '@/components/ProfileOnboarding';
 interface UserProfile {
   email: string;
   name: string;
+  firstName?: string;
+  lastName?: string;
   instrument: string;
   transposition: string;
   display_name: string;
@@ -35,7 +37,7 @@ function ProfileContent() {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/user/profile`);
       const data = await response.json();
       
-      console.log('Profile API response:', data);
+      // Profile API response received
       
       if (response.status === 404) {
         // New user - no profile exists yet
