@@ -320,7 +320,7 @@ class TestFileSynchronizer:
         # Mock organizer
         self.mock_organizer.create_shortcuts_for_user.return_value = 5
         
-        result = await self.synchronizer._sync_user_folder(
+        await self.synchronizer._sync_user_folder(
             self.mock_user,
             mock_source_files,
             "source_folder_123"
@@ -487,7 +487,7 @@ class TestScheduleSyncForUsers:
         
         start_time = datetime.now()
         
-        job_id = await schedule_sync_for_users(
+        await schedule_sync_for_users(
             user_ids=[1],
             source_folder_id="source_123", 
             synchronizer=mock_synchronizer,

@@ -242,19 +242,15 @@ class HealthCheck:
             Dictionary of API health status
         """
         # Import here to avoid circular dependencies
+        results = {}
+        
+        # Test Drive API (basic connection test without credentials)
         try:
-            from ..services.google_drive import GoogleDriveService
-            from ..services.google_sheets import GoogleSheetsService
-            
-            results = {}
-            
-            # Test Drive API (basic connection test without credentials)
-            try:
-                # This would normally test with actual credentials
-                results["google_drive"] = True
-            except Exception as e:
-                logger.error(f"Google Drive API health check failed: {e}")
-                results["google_drive"] = False
+            # This would normally test with actual credentials
+            results["google_drive"] = True
+        except Exception as e:
+            logger.error(f"Google Drive API health check failed: {e}")
+            results["google_drive"] = False
             
             # Test Sheets API
             try:

@@ -70,7 +70,14 @@
       "Bash(gh pr create:*)",
       "Bash(npm run type-check:*)",
       "Bash(npm run:*)",
-      "Bash(venv_linux/bin/python -m ruff check:*)"
+      "Bash(venv_linux/bin/python -m ruff check:*)",
+      "Bash(venv_linux/bin/python -m pytest -v)",
+      "Bash(venv_linux/bin/python -m pytest tests/ -v --tb=short)",
+      "Bash(venv_linux/bin/python:*)",
+      "Bash(for module in auth content drive sync dashboard)",
+      "Bash(do)",
+      "Bash(for subdir in api services models tests)",
+      "Bash(done)"
     ],
     "deny": []
   }

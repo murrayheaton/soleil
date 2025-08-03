@@ -214,17 +214,17 @@ class TestInstrumentKeyMapping:
     def test_is_chart_accessible_by_user(self):
         """Test chart accessibility based on user instruments."""
         # Trumpet player should access Bb charts
-        assert is_chart_accessible_by_user("Bb", ["trumpet"]) == True
-        assert is_chart_accessible_by_user("C", ["trumpet"]) == False
+        assert is_chart_accessible_by_user("Bb", ["trumpet"])
+        assert not is_chart_accessible_by_user("C", ["trumpet"])
         
         # Piano player should access C charts
-        assert is_chart_accessible_by_user("C", ["piano"]) == True
-        assert is_chart_accessible_by_user("Bb", ["piano"]) == False
+        assert is_chart_accessible_by_user("C", ["piano"])
+        assert not is_chart_accessible_by_user("Bb", ["piano"])
         
         # Multi-instrument player
-        assert is_chart_accessible_by_user("Bb", ["trumpet", "piano"]) == True
-        assert is_chart_accessible_by_user("C", ["trumpet", "piano"]) == True
-        assert is_chart_accessible_by_user("F", ["trumpet", "piano"]) == False
+        assert is_chart_accessible_by_user("Bb", ["trumpet", "piano"])
+        assert is_chart_accessible_by_user("C", ["trumpet", "piano"])
+        assert not is_chart_accessible_by_user("F", ["trumpet", "piano"])
     
     def test_suggest_key_for_instruments(self):
         """Test key suggestion for instrument combinations."""
@@ -345,15 +345,15 @@ class TestValidationRequirements:
         # PRP requirement: trumpet players automatically get Bb charts
         trumpet_user = ["trumpet", "flugelhorn"]  # Both Bb instruments
         
-        assert is_chart_accessible_by_user("Bb", trumpet_user) == True
-        assert is_chart_accessible_by_user("Eb", trumpet_user) == False
-        assert is_chart_accessible_by_user("C", trumpet_user) == False
+        assert is_chart_accessible_by_user("Bb", trumpet_user)
+        assert not is_chart_accessible_by_user("Eb", trumpet_user)
+        assert not is_chart_accessible_by_user("C", trumpet_user)
         
         # Multi-instrument user should get multiple keys
         multi_user = ["trumpet", "piano"]  # Bb and C instruments
-        assert is_chart_accessible_by_user("Bb", multi_user) == True
-        assert is_chart_accessible_by_user("C", multi_user) == True
-        assert is_chart_accessible_by_user("Eb", multi_user) == False
+        assert is_chart_accessible_by_user("Bb", multi_user)
+        assert is_chart_accessible_by_user("C", multi_user)
+        assert not is_chart_accessible_by_user("Eb", multi_user)
     
     def test_parsing_error_handling(self):
         """Test that parsing handles errors gracefully."""

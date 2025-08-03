@@ -263,7 +263,7 @@ class TestSyncEngine:
         assert stats["events_processed"] == 0
         assert stats["events_failed"] == 0
         assert stats["active_syncs"] == 0
-        assert stats["running"] == False
+        assert not stats["running"]
         
         # Reset stats
         engine.reset_stats()
