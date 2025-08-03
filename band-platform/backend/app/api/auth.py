@@ -5,16 +5,25 @@ This module provides authentication endpoints including JWT token management
 and Google OAuth integration following the PRP requirements.
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
 
 router = APIRouter()
 
 
 @router.post("/login", tags=["Authentication"])
-async def login():
+async def login(response: Response):
     """User login endpoint."""
     # TODO: Implement JWT authentication
-    raise HTTPException(status_code=501, detail="Authentication not implemented yet")
+    # For now, set authentication cookie with secure attributes
+    response.set_cookie(
+        key="soleil_auth",
+        value="true",
+        path="/",
+        secure=True,
+        httponly=True,
+        samesite="lax",
+    )
+    return {"detail": "Authentication not implemented yet"}
 
 
 @router.post("/register", tags=["Authentication"])
@@ -43,3 +52,18 @@ async def logout():
     """User logout endpoint."""
     # TODO: Implement logout
     raise HTTPException(status_code=501, detail="Logout not implemented yet")
+
+
+@router.post("/profile/complete", tags=["Authentication"])
+async def profile_complete(response: Response):
+    """Mark user profile as complete and set tracking cookie."""
+    response.set_cookie(
+        key="soleil_profile_complete",
+        value="true",
+        path="/",
+        secure=True,
+        httponly=True,
+        samesite="lax",
+    )
+    return {"status": "profile marked complete"}
+
