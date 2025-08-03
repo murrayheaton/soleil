@@ -61,8 +61,8 @@ function ProfileContent() {
               picture: sessionData.picture
             });
           }
-        } catch (error) {
-          console.error('Failed to get session data:', error);
+        } catch {
+          // Failed to get session data
         }
         return;
       }
@@ -70,6 +70,10 @@ function ProfileContent() {
       if (data.status === 'success') {
         setProfile(data.profile);
         setAuthStatus('success');
+        // Set profile complete cookie if profile has required fields
+        if (data.profile?.name && data.profile?.email) {
+          document.cookie = 'soleil_profile_complete=true; path=/; max-age=86400'; // 24 hours
+        }
       } else if (data.message && data.message.includes('Not authenticated')) {
         setAuthStatus('needed');
         setError('Please connect your Google Drive to access your profile.');
@@ -124,6 +128,10 @@ function ProfileContent() {
         setProfile(data.profile);
         setIsEditingProfile(false);
         setEditedProfile(null);
+        // Set profile complete cookie if profile has required fields
+        if (data.profile?.name && data.profile?.email) {
+          document.cookie = 'soleil_profile_complete=true; path=/; max-age=86400'; // 24 hours
+        }
       } else {
         setError(data.message || 'Failed to update profile');
       }
@@ -148,7 +156,7 @@ function ProfileContent() {
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     if (!clientId || !apiUrl) {
-      console.error('Google OAuth environment variables are not set');
+      // Google OAuth environment variables are not set
       return;
     }
 
@@ -267,13 +275,53 @@ function ProfileContent() {
                 <div className="space-y-6">
                   <h3 className="text-lg font-semibold text-white mb-4">Edit Profile</h3>
                   
-                  {/* Name Field */}
+                  {/* Name Fields */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">First Name</label>
+                      <input
+                        type="text"
+                        value={editedProfile.firstName || editedProfile.name?.split(' ')[0] || ''}
+                        onChange={(e) => {
+                          const firstName = e.target.value;
+                          const lastName = editedProfile.lastName || editedProfile.name?.split(' ').slice(1).join(' ') || '';
+                          setEditedProfile({
+                            ...editedProfile,
+                            firstName,
+                            name: `${firstName} ${lastName}`.trim()
+                          });
+                        }}
+                        className="w-full rounded px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
+                        style={{backgroundColor: '#404040', border: '1px solid #525252'}}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Last Name</label>
+                      <input
+                        type="text"
+                        value={editedProfile.lastName || editedProfile.name?.split(' ').slice(1).join(' ') || ''}
+                        onChange={(e) => {
+                          const lastName = e.target.value;
+                          const firstName = editedProfile.firstName || editedProfile.name?.split(' ')[0] || '';
+                          setEditedProfile({
+                            ...editedProfile,
+                            lastName,
+                            name: `${firstName} ${lastName}`.trim()
+                          });
+                        }}
+                        className="w-full rounded px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
+                        style={{backgroundColor: '#404040', border: '1px solid #525252'}}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Email Field */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Name</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
                     <input
-                      type="text"
-                      value={editedProfile.name}
-                      onChange={(e) => setEditedProfile({...editedProfile, name: e.target.value})}
+                      type="email"
+                      value={editedProfile.email}
+                      onChange={(e) => setEditedProfile({...editedProfile, email: e.target.value})}
                       className="w-full rounded px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
                       style={{backgroundColor: '#404040', border: '1px solid #525252'}}
                     />

@@ -16,6 +16,8 @@ export default function ProfileOnboarding({ initialData, onComplete }: ProfileOn
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
+    firstName: initialData?.name?.split(' ')[0] || '',
+    lastName: initialData?.name?.split(' ').slice(1).join(' ') || '',
     name: initialData?.name || '',
     email: initialData?.email || '',
     instrument: '',
@@ -39,13 +41,15 @@ export default function ProfileOnboarding({ initialData, onComplete }: ProfileOn
       });
 
       if (response.ok) {
+        // Set profile complete cookie
+        document.cookie = 'soleil_profile_complete=true; path=/; max-age=86400'; // 24 hours
         onComplete();
-        router.push('/repertoire');
+        router.push('/dashboard'); // Go to dashboard instead of repertoire
       } else {
-        console.error('Profile creation failed');
+        // Profile creation failed
       }
-    } catch (error) {
-      console.error('Profile creation error:', error);
+    } catch {
+      // Profile creation error
     } finally {
       setIsSubmitting(false);
     }
@@ -68,19 +72,49 @@ export default function ProfileOnboarding({ initialData, onComplete }: ProfileOn
       <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-6 rounded-b-lg shadow-lg">
         <div className="space-y-6">
           {/* Name Field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Full Name *
-            </label>
-            <input
-              type="text"
-              name="name"
-              required
-              value={formData.name}
-              onChange={handleInputChange}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-              placeholder="Your full name"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                First Name *
+              </label>
+              <input
+                type="text"
+                name="firstName"
+                required
+                value={formData.firstName}
+                onChange={(e) => {
+                  const firstName = e.target.value;
+                  setFormData(prev => ({
+                    ...prev,
+                    firstName,
+                    name: `${firstName} ${prev.lastName}`.trim()
+                  }));
+                }}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                placeholder="First name"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Last Name *
+              </label>
+              <input
+                type="text"
+                name="lastName"
+                required
+                value={formData.lastName}
+                onChange={(e) => {
+                  const lastName = e.target.value;
+                  setFormData(prev => ({
+                    ...prev,
+                    lastName,
+                    name: `${prev.firstName} ${lastName}`.trim()
+                  }));
+                }}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                placeholder="Last name"
+              />
+            </div>
           </div>
 
           {/* Email Field (Read-only) */}

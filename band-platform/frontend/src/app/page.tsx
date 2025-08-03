@@ -7,8 +7,8 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Simple redirect to dashboard - let middleware handle auth
-    router.replace('/dashboard');
+    // Middleware will handle the redirect based on auth status
+    // This is just a fallback
   }, [router]);
 
   return (
