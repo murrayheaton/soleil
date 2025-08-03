@@ -9,6 +9,15 @@
 - [ ] Create missing environment files (.env.example files) (added 2025-07-28)
 
 ### Just Completed (2025-08-03)
+- [x] Fix Root Page Redirect Logic and API Endpoint Consistency (completed 2025-08-03)
+  - User: "using the framework in /Users/murrayheaton/Documents/GitHub/soleil/.claude/execute-soleil-prp.md can you implement 02_fix_root_redirect_and_api_endpoints.md"
+  - Fixed API endpoint inconsistency (/api/users/profile → /api/user/profile)
+  - Simplified root page redirect logic - removed retry mechanism
+  - Added immediate redirect to login for unauthenticated users
+  - Enhanced profile page with welcome message for new users
+  - Improved overall user experience with faster redirects
+
+### Just Completed (2025-08-03)
 - [x] Cleanup Login Page Debug Elements (completed 2025-08-03)
   - User: "can you build a prp that fixes a few front end issues... we need to get rid of the button that says test button responsiveness on the login page, and we also need to get rid of the tag line"
   - Removed "Test Button Responsiveness" debug button

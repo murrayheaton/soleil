@@ -59,6 +59,7 @@ export default function BandPlatform() {
   const [authStatus, setAuthStatus] = useState<'checking' | 'needed' | 'success' | 'error'>('checking');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editedProfile, setEditedProfile] = useState<UserProfile | null>(null);
+  const [isNewUser, setIsNewUser] = useState(false);
 
   const fetchProfile = async () => {
     setLoading(true);
@@ -69,6 +70,22 @@ export default function BandPlatform() {
       const data = await response.json();
       
       console.log('Profile API response:', data);
+      
+      if (response.status === 404) {
+        // New user - no profile exists yet
+        setIsNewUser(true);
+        setProfile({
+          name: '',
+          email: '',
+          instrument: '',
+          transposition: '',
+          display_name: ''
+        });
+        setAuthStatus('success');
+        setLoading(false);
+        return;
+      }
+      
       if (data.status === 'success') {
         setProfile(data.profile);
         setAuthStatus('success');
@@ -250,6 +267,16 @@ export default function BandPlatform() {
             
             {/* Profile Content */}
             <div className="p-6">
+              {isNewUser && !isEditingProfile && (
+                <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                    Welcome to Soleil!
+                  </h3>
+                  <p className="text-blue-700 dark:text-blue-300">
+                    Please set up your profile to get started.
+                  </p>
+                </div>
+              )}
               {isEditingProfile && editedProfile ? (
                 /* Edit Profile Form */
                 <div className="space-y-6">
