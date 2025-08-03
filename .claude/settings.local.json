@@ -68,7 +68,8 @@
       "Bash(true)",
       "Bash(./scripts/fix_oauth_immediate.sh:*)",
       "Bash(gh pr create:*)",
-      "Bash(npm run type-check:*)"
+      "Bash(npm run type-check:*)",
+      "Bash(npm run:*)"
     ],
     "deny": []
   }

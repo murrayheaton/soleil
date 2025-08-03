@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { 
   DocumentTextIcon, 
   MusicalNoteIcon,
@@ -12,6 +12,8 @@ import {
   Cog6ToothIcon
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import ProfileOnboarding from '@/components/ProfileOnboarding';
 
 interface ChartFile {
   id: string;
@@ -52,7 +54,8 @@ interface UserProfile {
   display_name: string;
 }
 
-export default function BandPlatform() {
+function ProfileContent() {
+  const searchParams = useSearchParams();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -60,6 +63,7 @@ export default function BandPlatform() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editedProfile, setEditedProfile] = useState<UserProfile | null>(null);
   const [isNewUser, setIsNewUser] = useState(false);
+  const [googleUserData, setGoogleUserData] = useState<{name?: string; email?: string; picture?: string} | null>(null);
 
   const fetchProfile = async () => {
     setLoading(true);
@@ -83,6 +87,21 @@ export default function BandPlatform() {
         });
         setAuthStatus('success');
         setLoading(false);
+        
+        // Try to get Google user data from session
+        try {
+          const sessionResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/auth/session`);
+          if (sessionResponse.ok) {
+            const sessionData = await sessionResponse.json();
+            setGoogleUserData({
+              name: sessionData.name,
+              email: sessionData.email,
+              picture: sessionData.picture
+            });
+          }
+        } catch (error) {
+          console.error('Failed to get session data:', error);
+        }
         return;
       }
       
@@ -106,9 +125,13 @@ export default function BandPlatform() {
     // Check URL parameters for auth status
     const urlParams = new URLSearchParams(window.location.search);
     const authParam = urlParams.get('auth');
+    const isNewUserParam = urlParams.get('new_user') === 'true';
     
     if (authParam === 'success') {
       setAuthStatus('success');
+      if (isNewUserParam) {
+        setIsNewUser(true);
+      }
       // Clear URL parameters
       window.history.replaceState({}, document.title, window.location.pathname);
       // Fetch profile after successful auth
@@ -239,44 +262,44 @@ export default function BandPlatform() {
       {/* Profile Content */}
       <div className="p-8">
         <div className="max-w-4xl mx-auto">
-          {/* Profile Card */}
-          <div className="rounded border overflow-hidden" style={{backgroundColor: '#262626', borderColor: '#404040'}}>
-            {/* Profile Header */}
-            <div className="px-6 py-4 border-b" style={{backgroundColor: '#404040', borderColor: '#525252'}}>
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <UserCircleIcon className="w-12 h-12 text-white mr-4" />
-                  <div>
-                    <h2 className="text-2xl font-black text-white">{profile?.name || 'Loading...'}</h2>
-                    <p className="text-gray-400 text-sm">{profile?.email}</p>
+          {/* Show onboarding for new users without a profile */}
+          {isNewUser && !profile?.name ? (
+            <ProfileOnboarding 
+              initialData={googleUserData || undefined}
+              onComplete={() => {
+                setIsNewUser(false);
+                fetchProfile(); // Refresh profile data
+              }}
+            />
+          ) : (
+            /* Profile Card */
+            <div className="rounded border overflow-hidden" style={{backgroundColor: '#262626', borderColor: '#404040'}}>
+              {/* Profile Header */}
+              <div className="px-6 py-4 border-b" style={{backgroundColor: '#404040', borderColor: '#525252'}}>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center">
+                    <UserCircleIcon className="w-12 h-12 text-white mr-4" />
+                    <div>
+                      <h2 className="text-2xl font-black text-white">{profile?.name || 'Loading...'}</h2>
+                      <p className="text-gray-400 text-sm">{profile?.email}</p>
+                    </div>
                   </div>
+                  
+                  {!isEditingProfile && (
+                    <button
+                      onClick={startEditingProfile}
+                      className="text-white px-4 py-2 rounded transition-colors inline-flex items-center hover:opacity-80"
+                  style={{backgroundColor: '#000000'}}
+                    >
+                      <Cog6ToothIcon className="w-4 h-4 mr-2" />
+                      Edit Profile
+                    </button>
+                  )}
                 </div>
-                
-                {!isEditingProfile && (
-                  <button
-                    onClick={startEditingProfile}
-                    className="text-white px-4 py-2 rounded transition-colors inline-flex items-center hover:opacity-80"
-                style={{backgroundColor: '#000000'}}
-                  >
-                    <Cog6ToothIcon className="w-4 h-4 mr-2" />
-                    Edit Profile
-                  </button>
-                )}
               </div>
-            </div>
-            
-            {/* Profile Content */}
-            <div className="p-6">
-              {isNewUser && !isEditingProfile && (
-                <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
-                    Welcome to Soleil!
-                  </h3>
-                  <p className="text-blue-700 dark:text-blue-300">
-                    Please set up your profile to get started.
-                  </p>
-                </div>
-              )}
+              
+              {/* Profile Content */}
+              <div className="p-6">
               {isEditingProfile && editedProfile ? (
                 /* Edit Profile Form */
                 <div className="space-y-6">
@@ -392,8 +415,26 @@ export default function BandPlatform() {
               )}
             </div>
           </div>
+          )}
         </div>
       </div>
     </div>
+  );
+}
+
+export default function BandPlatform() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-900 text-white p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-500 mx-auto mb-4"></div>
+            <p className="text-gray-400">Loading...</p>
+          </div>
+        </div>
+      </div>
+    }>
+      <ProfileContent />
+    </Suspense>
   );
 }

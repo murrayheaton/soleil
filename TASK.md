@@ -9,6 +9,17 @@
 - [ ] Create missing environment files (.env.example files) (added 2025-07-28)
 
 ### Just Completed (2025-08-03)
+- [x] Implement New User Profile Setup Flow (completed 2025-08-03)
+  - User: "okay lets use the execution instructions to execute the prp starting with 3"
+  - Created ProfileOnboarding component with welcoming UI
+  - Updated backend auth callback to detect new users
+  - Added new_user=true parameter to profile redirect for first-time users
+  - Added /api/auth/session endpoint to retrieve Google user data
+  - Fixed useSearchParams error with Suspense boundary
+  - Pre-filled onboarding form with Google account data
+  - Redirect to repertoire after successful profile creation
+
+### Just Completed (2025-08-03)
 - [x] Fix Root Page Redirect Logic and API Endpoint Consistency (completed 2025-08-03)
   - User: "using the framework in /Users/murrayheaton/Documents/GitHub/soleil/.claude/execute-soleil-prp.md can you implement 02_fix_root_redirect_and_api_endpoints.md"
   - Fixed API endpoint inconsistency (/api/users/profile → /api/user/profile)

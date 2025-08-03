@@ -2,6 +2,23 @@
 
 ## Session 5 - August 3, 2025
 
+### New User Onboarding Flow Implementation
+
+**User Request**: "okay lets use the execution instructions to execute the prp starting with 3"
+
+#### What Was Accomplished
+
+- **ProfileOnboarding Component**: Created a beautiful welcoming interface with gradient header and clear instructions for new users
+- **Smart New User Detection**: Backend now detects first-time users during Google OAuth callback and redirects them appropriately
+- **Pre-filled Forms**: The onboarding form automatically pulls in the user's name and email from their Google account
+- **Session API Endpoint**: Added `/api/auth/session` to retrieve current user's Google data for the frontend
+- **Instrument Selection**: Comprehensive dropdown with all instruments including proper transposition notation (B♭, E♭, etc.)
+- **Technical Fixes**: Resolved useSearchParams error by wrapping component in Suspense boundary
+
+#### User Impact
+
+New musicians joining SOLEil now have a delightful first experience. Instead of seeing a broken profile page with endless loading spinners, they're greeted with a warm welcome message and a simple form to set up their profile. The form is already filled with their name from Google, they just need to select their instrument and they're ready to access their music. This change transforms a frustrating broken experience into a smooth, professional onboarding flow.
+
 ### Root Page Redirect and API Consistency Fix
 
 **User Request**: "using the framework in /Users/murrayheaton/Documents/GitHub/soleil/.claude/execute-soleil-prp.md can you implement 02_fix_root_redirect_and_api_endpoints.md"

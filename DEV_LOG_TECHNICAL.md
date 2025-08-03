@@ -2,6 +2,44 @@
 
 ## Session 5 - August 3, 2025
 
+### New User Onboarding Flow Implementation
+
+**User Request**: "okay lets use the execution instructions to execute the prp starting with 3"
+
+#### Technical Changes
+
+**Frontend**:
+1. Created `band-platform/frontend/src/components/ProfileOnboarding.tsx`:
+   - Gradient header with welcome message
+   - Form with name, email (read-only), instrument dropdown, and phone fields
+   - Instrument options include transposition notation (alto_sax shows "Alto Sax (E♭)")
+   - Submits to `/api/user/profile` POST endpoint
+   - Redirects to `/repertoire` on success
+
+2. Updated `band-platform/frontend/src/app/profile/page.tsx`:
+   - Added Suspense boundary to fix useSearchParams SSR error
+   - Split component into ProfileContent (with hooks) and main export (with Suspense)
+   - Added state for tracking Google user data
+   - Checks for `new_user=true` URL parameter
+   - Shows ProfileOnboarding component for new users without profiles
+   - Added session data fetching for pre-filling form
+
+**Backend**:
+1. Updated `band-platform/backend/start_server.py`:
+   - Modified auth callback to check if user is new via `profile.get('is_new')`
+   - New users redirect to `/profile?auth=success&new_user=true`
+   - Existing users redirect to `/login?auth=success`
+   - Added `/api/auth/session` endpoint to return current user's Google data
+
+2. Profile Service Enhancement:
+   - Already had `get_or_create_profile` that returns `is_new` flag
+   - No changes needed - existing functionality was sufficient
+
+#### Technical Debt
+- Consider moving ProfileOnboarding to a separate route (`/onboarding`) for cleaner separation
+- Add form validation for phone number format
+- Consider adding more instrument options or allowing custom instruments
+
 ### Root Page Redirect and API Endpoint Standardization
 
 **User Request**: "using the framework in /Users/murrayheaton/Documents/GitHub/soleil/.claude/execute-soleil-prp.md can you implement 02_fix_root_redirect_and_api_endpoints.md"

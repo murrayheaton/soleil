@@ -539,6 +539,31 @@ async def make_google_api_request(endpoint: str, params: Dict = None):
     
     raise HTTPException(status_code=401, detail="Failed to authenticate with Google")
 
+@app.get("/api/auth/session")
+async def get_session():
+    """Get current session information."""
+    try:
+        if not os.path.exists('google_token.json'):
+            return JSONResponse(
+                status_code=401,
+                content={"error": "Not authenticated"}
+            )
+        
+        with open('google_token.json', 'r') as f:
+            tokens = json.load(f)
+        
+        return {
+            "email": tokens.get('user_email'),
+            "name": tokens.get('user_name'),
+            "picture": tokens.get('picture', '')
+        }
+    except Exception as e:
+        logger.error(f"Session retrieval error: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Failed to retrieve session"}
+        )
+
 @app.get("/api/auth/google/login")
 async def google_login():
     """Initiate Google OAuth login flow."""
@@ -657,7 +682,12 @@ async def auth_callback(request: Request, code: str = None, error: str = None):
                 
                 # For now, allow all authenticated Google users
                 # In production, you would check against an authorized users list
-                return RedirectResponse(url=f"{frontend_url}/login?auth=success")
+                
+                # Check if this is a new user
+                if profile.get('is_new'):
+                    return RedirectResponse(url=f"{frontend_url}/profile?auth=success&new_user=true")
+                else:
+                    return RedirectResponse(url=f"{frontend_url}/login?auth=success")
             else:
                 logger.error(f"Failed to get user info: {user_info_response.status_code}")
                 return RedirectResponse(url=f"{frontend_url}/login?auth=error&message=Failed+to+get+user+info")
