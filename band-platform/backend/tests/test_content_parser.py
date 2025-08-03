@@ -14,8 +14,7 @@ from app.services.content_parser import (
     is_chart_accessible_by_user,
     suggest_key_for_instruments,
     FileType,
-    INSTRUMENT_KEY_MAPPING,
-    VALID_KEYS
+    INSTRUMENT_KEY_MAPPING
 )
 
 

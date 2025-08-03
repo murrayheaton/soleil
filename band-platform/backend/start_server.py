@@ -5,7 +5,7 @@ This bypasses the circular dependency issue by creating a minimal FastAPI app.
 """
 
 import uvicorn
-from fastapi import FastAPI, Request, HTTPException, Depends
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
@@ -15,7 +15,7 @@ import json
 import logging
 import traceback
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from typing import Optional, Dict
 from dotenv import load_dotenv
@@ -286,7 +286,7 @@ async def google_direct_login(request: dict):
                 "auth_url": f"https://accounts.google.com/o/oauth2/auth?client_id={client_id}&response_type=code&scope=https://www.googleapis.com/auth/drive.readonly&redirect_uri={os.getenv('GOOGLE_REDIRECT_URI', 'https://solepower.live/api/auth/google/callback')}&access_type=offline&prompt=consent&login_hint={email}"
             }
         
-    except Exception as e:
+    except Exception:
         return {
             "status": "error", 
             "message": "Unable to authenticate. Please check your internet connection."
@@ -608,7 +608,7 @@ async def auth_callback(request: Request, code: str = None, error: str = None):
         return RedirectResponse(url=f"{frontend_url}/login?auth=error&message=No+authorization+code")
     
     try:
-        logger.info(f"Auth code received: yes")
+        logger.info("Auth code received: yes")
         
         # Exchange code for tokens
         import requests
@@ -728,7 +728,7 @@ async def list_drive_files():
         
         # Get files from Charts folder
         charts_response = requests.get(
-            f'https://www.googleapis.com/drive/v3/files',
+            'https://www.googleapis.com/drive/v3/files',
             headers={'Authorization': f'Bearer {access_token}'},
             params={
                 'q': f"'{source_folder_id}' in parents and name = 'Charts' and mimeType = 'application/vnd.google-apps.folder'",
@@ -742,7 +742,7 @@ async def list_drive_files():
             
             # Get chart files
             chart_files_response = requests.get(
-                f'https://www.googleapis.com/drive/v3/files',
+                'https://www.googleapis.com/drive/v3/files',
                 headers={'Authorization': f'Bearer {access_token}'},
                 params={
                     'q': f"'{charts_folder_id}' in parents and trashed = false",
@@ -755,7 +755,7 @@ async def list_drive_files():
             
         # Get files from Audio folder
         audio_response = requests.get(
-            f'https://www.googleapis.com/drive/v3/files',
+            'https://www.googleapis.com/drive/v3/files',
             headers={'Authorization': f'Bearer {access_token}'},
             params={
                 'q': f"'{source_folder_id}' in parents and name = 'Audio' and mimeType = 'application/vnd.google-apps.folder'",
@@ -769,7 +769,7 @@ async def list_drive_files():
             
             # Get audio files
             audio_files_response = requests.get(
-                f'https://www.googleapis.com/drive/v3/files',
+                'https://www.googleapis.com/drive/v3/files',
                 headers={'Authorization': f'Bearer {access_token}'},
                 params={
                     'q': f"'{audio_folder_id}' in parents and trashed = false",
@@ -854,7 +854,6 @@ async def get_instrument_view(instrument: str):
     import requests
     import os
     from collections import defaultdict
-    import re
     
     # Check if we have a token
     if not os.path.exists('google_token.json'):
@@ -874,7 +873,7 @@ async def get_instrument_view(instrument: str):
         # Get all files from both folders with pagination
         def get_folder_files(folder_name):
             folder_response = requests.get(
-                f'https://www.googleapis.com/drive/v3/files',
+                'https://www.googleapis.com/drive/v3/files',
                 headers={'Authorization': f'Bearer {access_token}'},
                 params={
                     'q': f"'{source_folder_id}' in parents and name = '{folder_name}' and mimeType = 'application/vnd.google-apps.folder'",
@@ -901,7 +900,7 @@ async def get_instrument_view(instrument: str):
                         params['pageToken'] = next_page_token
                     
                     files_response = requests.get(
-                        f'https://www.googleapis.com/drive/v3/files',
+                        'https://www.googleapis.com/drive/v3/files',
                         headers={'Authorization': f'Bearer {access_token}'},
                         params=params
                     )
@@ -1161,7 +1160,6 @@ async def view_file(file_id: str):
     import requests
     import os
     from fastapi.responses import StreamingResponse
-    from fastapi import Request
     
     # Check if we have a token
     if not os.path.exists('google_token.json'):

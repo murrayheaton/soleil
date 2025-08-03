@@ -1,6 +1,6 @@
 import { ModuleProps } from '@/types/dashboard';
 
-export function CompletedGigsModule({ userId }: ModuleProps) {
+export function CompletedGigsModule({ }: ModuleProps) {
   return (
     <div className="placeholder-module" style={{
       textAlign: 'center', 

@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import {
-  MusicalNoteIcon,
   ClockIcon,
   DocumentTextIcon,
   PencilIcon,

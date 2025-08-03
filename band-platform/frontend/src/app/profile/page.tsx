@@ -2,16 +2,9 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { 
-  DocumentTextIcon, 
-  MusicalNoteIcon,
-  ArrowDownTrayIcon,
-  PlayIcon,
-  PauseIcon,
-  EyeIcon,
   UserCircleIcon,
   Cog6ToothIcon
 } from '@heroicons/react/24/outline';
-import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import ProfileOnboarding from '@/components/ProfileOnboarding';
 
@@ -37,14 +30,6 @@ interface Song {
   total_files: number;
 }
 
-interface FilesResponse {
-  status: string;
-  instrument: string;
-  transposition: string;
-  songs: Song[];
-  total_songs: number;
-  message: string;
-}
 
 interface UserProfile {
   email: string;
@@ -55,7 +40,7 @@ interface UserProfile {
 }
 
 function ProfileContent() {
-  const searchParams = useSearchParams();
+  useSearchParams(); // Hook is required for component but not used directly
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -114,7 +99,7 @@ function ProfileContent() {
       } else {
         setError(data.message || 'Failed to load profile');
       }
-    } catch (err) {
+    } catch {
       setError('Failed to connect to backend. Make sure the backend is running on port 8000.');
     } finally {
       setLoading(false);

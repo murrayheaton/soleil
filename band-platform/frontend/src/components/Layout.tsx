@@ -73,7 +73,7 @@ export default function Layout({ children }: LayoutProps) {
     exit: { opacity: 0, transition: { duration: 0.25 } },
   };
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isOnline, setIsOnline] = useState(true);
+  const [, setIsOnline] = useState(true);
   const [offlineMode, setOfflineMode] = useState(false);
 
   // Initialize offline mode from localStorage

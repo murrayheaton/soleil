@@ -6,7 +6,6 @@ and triggering folder reorganization when user access patterns change.
 """
 
 import logging
-from typing import List, Optional, Dict
 
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy import select
@@ -14,9 +13,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from ..database.connection import get_db_session_dependency
-from ..models.user import User, UserRole, UserSchema
+from ..models.user import User, UserSchema
 from ..models.folder_structure import SyncStatus
-from ..services.content_parser import INSTRUMENT_KEY_MAPPING, get_keys_for_instruments
+from ..services.content_parser import get_keys_for_instruments
 from ..services.file_synchronizer import FileSynchronizer, schedule_sync_for_users
 from ..services.google_drive import GoogleDriveService
 from .role_models import (

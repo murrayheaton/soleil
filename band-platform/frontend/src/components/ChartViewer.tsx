@@ -102,7 +102,7 @@ export default function ChartViewer({ chart, onClose }: ChartViewerProps) {
         URL.revokeObjectURL(pdfUrl);
       }
     };
-  }, [chart]);
+  }, [chart, pdfUrl]);
 
   // Handle fullscreen
   const toggleFullscreen = useCallback(() => {

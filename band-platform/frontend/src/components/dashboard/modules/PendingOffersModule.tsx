@@ -1,6 +1,6 @@
 import { ModuleProps } from '@/types/dashboard';
 
-export function PendingOffersModule({ userId }: ModuleProps) {
+export function PendingOffersModule({ }: ModuleProps) {
   return (
     <div className="placeholder-module" style={{
       textAlign: 'center', 

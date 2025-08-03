@@ -3,7 +3,6 @@
 Test script to validate authentication consolidation
 """
 
-import os
 import json
 from pathlib import Path
 

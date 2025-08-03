@@ -6,8 +6,7 @@ and real-time update functionality following the PRP requirements.
 """
 
 import pytest
-import asyncio
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from unittest.mock import Mock, AsyncMock, patch
 from google.oauth2.credentials import Credentials
 

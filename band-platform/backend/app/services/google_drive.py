@@ -27,25 +27,20 @@ import asyncio
 import logging
 import uuid
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any
 from contextlib import asynccontextmanager
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import Flow
 
 from .drive_helpers import (
     RateLimiter,
-    GoogleDriveAuth,
     StatsMixin,
-    create_drive_service,
-    test_drive_connection,
 )
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 import backoff
 
-from ..config import settings
 from ..services.content_parser import parse_filename
 
 logger = logging.getLogger(__name__)

@@ -94,7 +94,7 @@ export default function AudioPlayer({
         URL.revokeObjectURL(audioUrl);
       }
     };
-  }, [audio]);
+  }, [audio, audioUrl]);
 
   // Update audio element when URL changes
   useEffect(() => {

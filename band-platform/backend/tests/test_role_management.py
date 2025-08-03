@@ -8,7 +8,6 @@ and triggering folder reorganization.
 import pytest
 from unittest.mock import Mock, AsyncMock, patch
 from fastapi.testclient import TestClient
-from fastapi import HTTPException
 
 from app.api.role_management import (
     InstrumentUpdate,

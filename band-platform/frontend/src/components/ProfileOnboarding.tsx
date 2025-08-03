@@ -62,7 +62,7 @@ export default function ProfileOnboarding({ initialData, onComplete }: ProfileOn
     <div className="max-w-2xl mx-auto">
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-lg">
         <h1 className="text-3xl font-bold mb-2">Welcome to SOLEil! ☀</h1>
-        <p className="text-lg opacity-90">Let's set up your musician profile to get started.</p>
+        <p className="text-lg opacity-90">Let&apos;s set up your musician profile to get started.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-6 rounded-b-lg shadow-lg">

@@ -7,7 +7,6 @@ This module provides shared test fixtures and configuration for all test modules
 import pytest
 import asyncio
 from unittest.mock import Mock, AsyncMock, patch
-from typing import AsyncGenerator
 
 # Mock database initialization to avoid actual database connections in tests
 @pytest.fixture(scope="session", autouse=True)

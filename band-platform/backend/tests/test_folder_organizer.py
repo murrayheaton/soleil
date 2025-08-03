@@ -6,13 +6,11 @@ role-based file filtering and folder structure creation.
 """
 
 import pytest
-import asyncio
-from unittest.mock import Mock, AsyncMock, patch, call
-from datetime import datetime
+from unittest.mock import Mock, AsyncMock, patch
 
 from app.services.folder_organizer import FolderOrganizer, FolderOrganizationError, create_user_folder_if_needed
 from app.models.user import User, Band
-from app.models.folder_structure import UserFolder, SyncStatus
+from app.models.folder_structure import UserFolder
 
 
 class TestFolderOrganizer:
