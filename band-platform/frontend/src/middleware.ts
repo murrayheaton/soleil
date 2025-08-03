@@ -10,23 +10,41 @@ export function middleware(request: NextRequest) {
   // Check if the current route is public
   const isPublicRoute = publicRoutes.some(route => pathname === route);
   
-  // Check for authentication - for now we'll use a simple cookie check
-  // In production, this should verify a JWT or session token
+  // If accessing login page, always allow it through (no redirects)
+  if (pathname === '/login') {
+    // If already authenticated, redirect away from login
+    const isAuthenticated = request.cookies.get('soleil_auth') || 
+                           searchParams.get('auth') === 'success';
+    
+    if (isAuthenticated) {
+      const hasProfile = request.cookies.get('soleil_profile_complete');
+      if (hasProfile) {
+        return NextResponse.redirect(new URL('/dashboard', request.url));
+      } else {
+        return NextResponse.redirect(new URL('/profile', request.url));
+      }
+    }
+    
+    // Not authenticated - allow access to login page
+    return NextResponse.next();
+  }
+  
+  // For all other routes, check authentication
   const isAuthenticated = request.cookies.get('soleil_auth') || 
                          searchParams.get('auth') === 'success';
   
   // If trying to access a protected route without authentication, redirect to login
   if (!isPublicRoute && !isAuthenticated) {
     const loginUrl = new URL('/login', request.url);
+    // Only set redirect parameter for meaningful paths
     if (pathname !== '/') {
       loginUrl.searchParams.set('redirect', pathname);
     }
     return NextResponse.redirect(loginUrl);
   }
   
-  // If authenticated and trying to access root or login, redirect based on profile status
-  if (isAuthenticated && (pathname === '/' || pathname === '/login')) {
-    // Check if user has completed profile setup
+  // If authenticated and accessing root, redirect based on profile status
+  if (isAuthenticated && pathname === '/') {
     const hasProfile = request.cookies.get('soleil_profile_complete');
     
     if (hasProfile) {
