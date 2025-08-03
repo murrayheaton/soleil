@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { 
   UserCircleIcon,
   Cog6ToothIcon
@@ -50,7 +50,7 @@ function ProfileContent() {
   const [isNewUser, setIsNewUser] = useState(false);
   const [googleUserData, setGoogleUserData] = useState<{name?: string; email?: string; picture?: string} | null>(null);
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     setLoading(true);
     setError(null);
     
@@ -104,7 +104,7 @@ function ProfileContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     // Check URL parameters for auth status
@@ -129,7 +129,7 @@ function ProfileContent() {
       // Check if we need authentication by trying to fetch profile
       fetchProfile();
     }
-  }, []);
+  }, [fetchProfile]);
 
   const updateProfile = async (updatedProfile: Partial<UserProfile>) => {
     try {

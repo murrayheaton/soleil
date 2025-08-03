@@ -545,9 +545,9 @@ export default function RepertoirePage() {
                       
                       {/* Download Options */}
                       <div className="flex space-x-3">
-                        {selectedFile.songData.charts.length > 0 && (
+                        {selectedFile.songData?.charts.length > 0 && (
                           <button
-                            onClick={() => downloadFile(selectedFile.songData.charts.find(c => !c.is_placeholder)?.id || selectedFile.songData.charts[0].id, selectedFile.songData.charts[0].name)}
+                            onClick={() => downloadFile(selectedFile.songData!.charts.find(c => !c.is_placeholder)?.id || selectedFile.songData!.charts[0].id, selectedFile.songData!.charts[0].name)}
                             className="text-white px-3 py-2 rounded text-sm inline-flex items-center border hover:opacity-80"
                             style={{backgroundColor: '#404040', borderColor: '#525252'}}
                           >
@@ -556,7 +556,7 @@ export default function RepertoirePage() {
                           </button>
                         )}
                         <button
-                          onClick={() => downloadFile(selectedFile.songData.audio.find(a => !a.is_placeholder)?.id || selectedFile.songData.audio[0].id, selectedFile.songData.audio[0].name)}
+                          onClick={() => downloadFile(selectedFile.songData!.audio.find(a => !a.is_placeholder)?.id || selectedFile.songData!.audio[0].id, selectedFile.songData!.audio[0].name)}
                           className="text-white px-3 py-2 rounded text-sm inline-flex items-center border hover:opacity-80"
                           style={{backgroundColor: '#525252', borderColor: '#525252'}}
                         >

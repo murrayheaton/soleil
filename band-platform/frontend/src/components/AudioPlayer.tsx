@@ -71,8 +71,12 @@ export default function AudioPlayer({
             await offlineStorage.storeAudio({
               ...audio,
               file_data: arrayBuffer,
-              band_id: audio.band_id,
+              band_id: typeof audio.band_id === 'string' ? parseInt(audio.band_id) : audio.band_id,
               accessible_to_user: true,
+              file_type: 'audio',
+              file_url: audio.id,
+              created_at: new Date(),
+              updated_at: new Date(),
             });
           } catch (cacheError) {
             console.warn('Failed to cache audio offline:', cacheError);
@@ -94,7 +98,7 @@ export default function AudioPlayer({
         URL.revokeObjectURL(audioUrl);
       }
     };
-  }, [audio, audioUrl]);
+  }, [audio]);
 
   // Update audio element when URL changes
   useEffect(() => {

@@ -56,7 +56,7 @@ export default function SetlistView({
     const unsubscribeSetlist = subscribe('setlist_updated', (data) => {
       if (data.setlist_id === setlist.id) {
         // Refresh setlist data
-        apiService.getSetlist(setlist.id).then(updatedSetlist => {
+        apiService.getSetlist(setlist.id).then((updatedSetlist: Setlist) => {
           setSetlist(updatedSetlist);
           if (onUpdate) onUpdate(updatedSetlist);
         });
@@ -66,7 +66,7 @@ export default function SetlistView({
     return () => {
       unsubscribeSetlist();
     };
-  }, [setlist.id, subscribe, onUpdate]);
+  }, [setlist.id, subscribe, unsubscribe, onUpdate]);
 
   // Handle drag and drop
   const handleDragEnd = useCallback(async (result: DropResult) => {
@@ -176,7 +176,7 @@ export default function SetlistView({
 
   // Calculate total duration
   const totalDuration = setlist.items.reduce(
-    (total, item) => total + (item.estimated_duration || 0),
+    (total: number, item: SetlistItem) => total + (item.estimated_duration || 0),
     0
   );
 

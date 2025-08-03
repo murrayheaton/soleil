@@ -79,8 +79,12 @@ export default function ChartViewer({ chart, onClose }: ChartViewerProps) {
             await offlineStorage.storeChart({
               ...chart,
               file_data: arrayBuffer,
-              band_id: chart.band_id,
+              band_id: typeof chart.band_id === 'string' ? parseInt(chart.band_id) : chart.band_id,
               accessible_to_user: true,
+              file_type: 'chart',
+              file_url: chart.id,
+              created_at: new Date(),
+              updated_at: new Date(),
             });
           } catch (cacheError) {
             console.warn('Failed to cache chart offline:', cacheError);
@@ -102,7 +106,7 @@ export default function ChartViewer({ chart, onClose }: ChartViewerProps) {
         URL.revokeObjectURL(pdfUrl);
       }
     };
-  }, [chart, pdfUrl]);
+  }, [chart]);
 
   // Handle fullscreen
   const toggleFullscreen = useCallback(() => {

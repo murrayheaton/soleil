@@ -257,7 +257,7 @@ async def google_direct_login(request: dict):
                     # Check if we have a valid access token
                     if existing_token.get('access_token') and existing_token.get('access_token') != 'mock_service_account_token':
                         token_exists = True
-            except:
+            except (FileNotFoundError, json.JSONDecodeError):
                 pass
         
         if token_exists:
@@ -305,7 +305,7 @@ def get_user_profile(email):
         try:
             with open(profiles_file, 'r') as f:
                 profiles = json.load(f)
-        except:
+        except (FileNotFoundError, json.JSONDecodeError):
             profiles = {}
     
     # Default profile for Murray
