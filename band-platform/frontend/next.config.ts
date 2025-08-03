@@ -4,7 +4,7 @@ import withPWA from 'next-pwa';
 const nextConfig: NextConfig = {
   /* config options here */
   output: 'standalone',
-  trailingSlash: true,
+  trailingSlash: false,
   images: {
     unoptimized: true
   },
