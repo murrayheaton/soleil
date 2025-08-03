@@ -8,63 +8,118 @@ SOLEil (Sole Power Live) is a band platform designed to help musicians collabora
 
 ## 🏗️ Architecture
 
+### Modular Architecture (In Migration)
+The platform is transitioning to a modular architecture to enable multi-agent development and better scalability.
+
+**Core Modules**:
+- **Auth Module**: Google OAuth, JWT, session management, user profiles
+- **Content Module**: File parsing, instrument filtering, chart metadata
+- **Drive Module**: Google Drive integration, file streaming, caching
+- **Sync Module**: WebSocket real-time updates, event broadcasting
+- **Dashboard Module**: UI components, module grid system
+
 ### Backend
-- **Framework**: FastAPI
+- **Framework**: FastAPI with modular routing
 - **Database**: SQLAlchemy/SQLModel for ORM
 - **Environment**: Python with venv_linux virtual environment
-- **Testing**: Pytest
+- **Testing**: Pytest with module-specific test suites
 - **Code Quality**: Black formatter, Ruff linter, MyPy type checking
+- **Architecture**: Service layer pattern with clear module boundaries
 
 ### Frontend
-- **Framework**: Next.js
+- **Framework**: Next.js with module-based component organization
 - **Design**: Mobile-first responsive design
-- **Data Fetching**: React Query
+- **Data Fetching**: React Query with module-specific hooks
 - **Testing**: Jest/React Testing Library
 - **Build**: npm run build
+- **State Management**: Module-scoped contexts and hooks
 
 ### Development Philosophy
 - **File Size Limit**: Never exceed 500 lines per file
-- **Modularity**: Organize code into clear feature-based modules
-- **Testing**: Every feature needs unit tests (happy path, edge case, error case)
-- **Documentation**: Every function needs docstrings using Google style
+- **Modularity**: Self-contained modules with MODULE.md documentation
+- **Testing**: Module-specific test suites (unit, integration, e2e)
+- **Documentation**: MODULE.md for each module + function docstrings
+- **Communication**: Event bus for loose coupling between modules
 
 ## 📁 Project Structure
 
+### Current Structure (Production)
 ```
 soleil/
 ├── band-platform/
 │   ├── backend/
 │   │   ├── venv_linux/          # Virtual environment
-│   │   ├── start_server.py      # Main FastAPI application (PRODUCTION READY)
-│   │   ├── google_token.json    # OAuth2 token storage
+│   │   ├── start_server.py      # Main FastAPI application
+│   │   ├── app/                 # Application code
+│   │   │   ├── services/        # Business logic services
+│   │   │   ├── models/          # Database models
+│   │   │   └── utils/           # Utilities and helpers
 │   │   └── user_profiles.json   # User profile persistence
 │   └── frontend/
 │       └── src/
-│           ├── app/
-│           │   ├── page.tsx               # Profile landing page (PRODUCTION READY)
-│           │   └── repertoire/page.tsx    # File browser interface (PRODUCTION READY)
-│           └── components/
-│               └── Layout.tsx             # Navigation component (PRODUCTION READY)
-├── start_sole_power_live.sh     # Production launcher script
-├── CLAUDE.md                    # Global AI assistant rules
-├── TASK.md                      # Current task tracking
-├── DEV_LOG.md                   # Human-readable progress
-├── DEV_LOG_TECHNICAL.md         # Technical implementation details
-└── PRODUCT_VISION.md            # Product vision and features
+│           ├── app/             # Next.js pages
+│           ├── components/      # React components
+│           ├── lib/             # API clients and utilities
+│           └── types/           # TypeScript definitions
+├── PRPs/                        # Project Requirement Prompts
+│   ├── active/                  # PRPs ready for execution
+│   └── archive/                 # Completed PRPs
+├── MODULAR_ARCHITECTURE_PROPOSAL.md  # Migration plan
+└── [documentation files]        # Various .md files
+```
+
+### Target Modular Structure (In Migration)
+```
+soleil/
+├── band-platform/
+│   ├── backend/
+│   │   ├── modules/
+│   │   │   ├── auth/           # Authentication module
+│   │   │   ├── content/        # Content management module
+│   │   │   ├── drive/          # Google Drive module
+│   │   │   ├── sync/           # Synchronization module
+│   │   │   └── dashboard/      # Dashboard aggregation
+│   │   ├── core/               # Shared utilities and config
+│   │   └── start_server.py     # Module registration and startup
+│   └── frontend/
+│       └── src/
+│           ├── modules/         # Frontend module components
+│           └── core/            # Shared components and utilities
+└── [documentation files]
 ```
 
 ## 🧱 Code Organization Patterns
 
-### For Agents/Services
-- `agent.py` - Main agent definition and execution logic
-- `tools.py` - Tool functions used by the agent
-- `prompts.py` - System prompts
+### Module Structure
+Each module follows this pattern:
+```
+module_name/
+├── MODULE.md           # Module documentation and context
+├── __init__.py         # Public module interface
+├── api/                # FastAPI route handlers
+├── services/           # Business logic
+├── models/             # Data models
+├── types/              # TypeScript types (frontend modules)
+├── tests/              # Module-specific tests
+└── frontend/           # Frontend components (if applicable)
+    ├── components/
+    ├── hooks/
+    └── utils/
+```
+
+### Module Communication
+- **Direct Import**: Only from module's public interface (`__init__.py`)
+- **Event Bus**: For loose coupling between modules
+- **API Gateway**: Central routing and service discovery
+- **Dependency Injection**: For testing and flexibility
 
 ### General Principles
-- Use relative imports within packages
+- Each module must have a MODULE.md file
+- Use relative imports within modules
 - Use python_dotenv and load_env() for environment variables
 - Follow PEP8 with type hints
 - Use Pydantic for data validation
+- Module interfaces must be explicitly defined
 
 ## 🧪 Testing Strategy
 

@@ -10,7 +10,7 @@ export default function HomePage() {
   useEffect(() => {
     const checkAuthAndRedirect = async () => {
       try {
-        const response = await fetch('/api/user/profile', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live/api'}/profile`, {
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json',

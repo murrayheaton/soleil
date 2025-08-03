@@ -1,47 +1,40 @@
-import type { Metadata } from "next";
+'use client';
+
+import { usePathname } from "next/navigation";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Layout from "@/components/Layout";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: "Band Platform",
-  description: "A Progressive Web App for band management with Google Workspace integration",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "Band Platform",
-  },
-  formatDetection: {
-    telephone: false,
-  },
-};
-
-export function generateViewport() {
-  return {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-    themeColor: '#1f2937',
-  }
-}
-
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const pathname = usePathname();
+  
+  // Pages that should not have the navigation layout
+  const publicPages = ['/', '/login'];
+  const isPublicPage = publicPages.includes(pathname);
+  
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <title>Band Platform</title>
+        <meta name="description" content="A Progressive Web App for band management with Google Workspace integration" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Band Platform" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+        <meta name="theme-color" content="#1f2937" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
       </head>
       <body className={`${inter.className} antialiased`}>
-        <Layout>{children}</Layout>
+        {isPublicPage ? children : <Layout>{children}</Layout>}
       </body>
     </html>
   );

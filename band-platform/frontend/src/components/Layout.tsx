@@ -75,6 +75,8 @@ export default function Layout({ children }: LayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [, setIsOnline] = useState(true);
   const [offlineMode, setOfflineMode] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   // Initialize offline mode from localStorage
   useEffect(() => {
@@ -84,6 +86,36 @@ export default function Layout({ children }: LayoutProps) {
       setIsOnline(false);
     }
   }, []);
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        // Check if we have a session by trying to fetch profile
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live/api'}/profile`, {
+          credentials: 'include',
+        });
+        
+        if (response.ok) {
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+          // If not authenticated and on a protected route, redirect to login
+          const publicPaths = ['/', '/login'];
+          if (!publicPaths.includes(pathname)) {
+            window.location.href = '/login';
+          }
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        setIsAuthenticated(false);
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
+
+    checkAuth();
+  }, [pathname]);
 
   // Monitor online/offline status
   useEffect(() => {
@@ -130,89 +162,100 @@ export default function Layout({ children }: LayoutProps) {
     }
   };
 
+  // Don't render until auth check is complete
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: '#ffffff'}}>
+        <div className="text-gray-500">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen" style={{backgroundColor: '#ffffff'}}>
-      {/* Navigation Header */}
-      <nav className="nav-container">
-        <div className="nav-content">
-          {/* Logo - Now clickable */}
-          <Link href="/dashboard" className="logo-link">
-            <div className="logo-wrapper">
-              <span className="text-white">☀</span> <span className="logo-sole">SOLE</span><span className="logo-il">il</span>
-            </div>
-          </Link>
-          
-          {/* Navigation Items - Desktop */}
-          <ul className="nav-items hidden md:flex">
-            {navigation.map(item => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
-              return (
-                <li key={item.href}>
-                  <Link 
-                    href={item.href}
-                    className={`nav-link ${isActive ? 'active' : ''}`}
-                  >
-                    <Icon className="w-4 h-4 mr-2" />
-                    {item.name}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-          
-          {/* Sign Out Button */}
-          <button 
-            onClick={handleSignOut}
-            className="sign-out-btn hidden md:block"
-          >
-            Sign Out
-          </button>
-          
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden text-white hover:opacity-80 transition-opacity"
-          >
-            {isMobileMenuOpen ? (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            ) : (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            )}
-          </button>
-        </div>
-        
-        {/* Mobile Navigation Menu */}
-        {isMobileMenuOpen && (
-          <div className="mobile-nav">
-            {navigation.map(item => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
-              return (
-                <Link 
-                  key={item.href}
-                  href={item.href}
-                  className={`mobile-nav-link ${isActive ? 'active' : ''}`}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <Icon className="w-5 h-5 mr-3" />
-                  {item.name}
-                </Link>
-              );
-            })}
+      {/* Navigation Header - Only show when authenticated */}
+      {isAuthenticated && (
+        <nav className="nav-container">
+          <div className="nav-content">
+            {/* Logo - Now clickable */}
+            <Link href="/dashboard" className="logo-link">
+              <div className="logo-wrapper">
+                <span className="text-white">☀</span> <span className="logo-sole">SOLE</span><span className="logo-il">il</span>
+              </div>
+            </Link>
+            
+            {/* Navigation Items - Desktop */}
+            <ul className="nav-items hidden md:flex">
+              {navigation.map(item => {
+                const Icon = item.icon;
+                const isActive = pathname === item.href;
+                return (
+                  <li key={item.href}>
+                    <Link 
+                      href={item.href}
+                      className={`nav-link ${isActive ? 'active' : ''}`}
+                    >
+                      <Icon className="w-4 h-4 mr-2" />
+                      {item.name}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+            
+            {/* Sign Out Button */}
             <button 
               onClick={handleSignOut}
-              className="mobile-nav-link text-left w-full"
+              className="sign-out-btn hidden md:block"
             >
               Sign Out
             </button>
+            
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden text-white hover:opacity-80 transition-opacity"
+            >
+              {isMobileMenuOpen ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
           </div>
-        )}
-      </nav>
+          
+          {/* Mobile Navigation Menu */}
+          {isMobileMenuOpen && (
+            <div className="mobile-nav">
+              {navigation.map(item => {
+                const Icon = item.icon;
+                const isActive = pathname === item.href;
+                return (
+                  <Link 
+                    key={item.href}
+                    href={item.href}
+                    className={`mobile-nav-link ${isActive ? 'active' : ''}`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <Icon className="w-5 h-5 mr-3" />
+                    {item.name}
+                  </Link>
+                );
+              })}
+              <button 
+                onClick={handleSignOut}
+                className="mobile-nav-link text-left w-full"
+              >
+                Sign Out
+              </button>
+            </div>
+          )}
+        </nav>
+      )}
 
       {/* Main Content */}
       <main className="main-content">

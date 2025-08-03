@@ -86,15 +86,44 @@ All core functionality is complete and working:
 - ✅ **Study mode** - Chart viewing with synchronized audio playback
 - ✅ **File downloads** - PDF and audio downloads with proper naming
 
+## Technical Architecture Evolution
+
+### Modular Architecture (In Development)
+SOLEil is evolving to a modular architecture that enables:
+- **Parallel Development**: Multiple developers/AI agents can work on different modules simultaneously
+- **Better Scalability**: Each module can be scaled independently based on usage
+- **Cleaner Codebase**: Clear boundaries between features reduce complexity
+- **Easier Testing**: Module-specific test suites ensure reliability
+
+### Core Modules
+1. **Auth Module**: Handles all authentication and user management
+2. **Content Module**: Manages file parsing, organization, and metadata
+3. **Drive Module**: Google Drive integration with caching and rate limiting
+4. **Sync Module**: Real-time updates and WebSocket connections
+5. **Dashboard Module**: Aggregates data for the musician dashboard
+
 ## Future Enhancements
 
 While the core platform is complete, potential additions include:
-- Offline chart downloads for venues without WiFi
-- Setlist management with real-time updates during gigs
-- Multi-band support for musicians in multiple groups
-- Push notifications for new charts and gig updates
-- Enhanced practice tools with loop points and tempo adjustment
+- **Offline Mode**: Download charts and audio for venues without WiFi (PWA enhancement)
+- **Live Setlist Management**: Real-time setlist updates during performances
+- **Multi-Band Support**: Switch between multiple bands seamlessly
+- **Push Notifications**: Updates for new charts, gig changes, and announcements
+- **Practice Tools**: Loop points, tempo adjustment, and practice tracking
+- **Band Communication**: In-app messaging and announcements
+- **Analytics Dashboard**: Track which songs are played most, practice time, etc.
 
 ---
 
 *SOLEil: Because great music starts with great organization.*
+
+## Development Philosophy
+
+### For Musicians, By Musicians
+Every feature in SOLEil is designed with real-world band experience in mind. We understand the chaos of last-minute chart changes, the frustration of missing files, and the need for instant access during performances.
+
+### Open for Extension
+The modular architecture ensures that SOLEil can grow with your band's needs. Whether it's integrating with new services, adding custom features, or scaling to support larger organizations, the platform is built to evolve.
+
+### AI-Assisted Development
+SOLEil leverages AI agents for development, ensuring consistent code quality, comprehensive testing, and rapid feature delivery while maintaining human oversight for musical domain expertise.
