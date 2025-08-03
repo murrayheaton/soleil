@@ -7,9 +7,6 @@ export function middleware(request: NextRequest) {
   // Define public routes that don't require authentication
   const publicRoutes = ['/login'];
   
-  // Check if the current route is public
-  const isPublicRoute = publicRoutes.some(route => pathname === route);
-  
   // If accessing login page, always allow it through (no redirects)
   if (pathname === '/login') {
     // If already authenticated, redirect away from login
@@ -34,6 +31,7 @@ export function middleware(request: NextRequest) {
                          searchParams.get('auth') === 'success';
   
   // If trying to access a protected route without authentication, redirect to login
+  const isPublicRoute = publicRoutes.includes(pathname);
   if (!isPublicRoute && !isAuthenticated) {
     const loginUrl = new URL('/login', request.url);
     // Only set redirect parameter for meaningful paths
