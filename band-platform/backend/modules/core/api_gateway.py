@@ -4,7 +4,7 @@ API Gateway for Module Registration
 This module provides a gateway for registering and managing module routes
 in the SOLEil application.
 """
-from typing import Dict, List, Optional, Any, Callable
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 from fastapi import FastAPI, APIRouter
 import logging

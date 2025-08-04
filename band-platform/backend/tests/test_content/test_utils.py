@@ -3,7 +3,6 @@ Tests for content module utilities.
 
 Tests file type detection, naming conventions, and metadata extraction.
 """
-from datetime import datetime
 
 from modules.content.utils.file_types import (
     get_file_type, is_chart_file, is_audio_file,
@@ -13,7 +12,7 @@ from modules.content.utils.naming import (
     format_song_title, clean_filename, generate_filename
 )
 from modules.content.utils.metadata import (
-    extract_metadata, format_file_size, 
+    format_file_size, 
     get_file_info
 )
 
