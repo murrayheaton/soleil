@@ -77,7 +77,8 @@
       "Bash(for module in auth content drive sync dashboard)",
       "Bash(do)",
       "Bash(for subdir in api services models tests)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(venv_linux/bin/pip list:*)"
     ],
     "deny": []
   }

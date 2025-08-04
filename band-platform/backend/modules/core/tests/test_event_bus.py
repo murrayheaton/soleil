@@ -1,7 +1,6 @@
 """Tests for EventBus functionality"""
 import asyncio
 import pytest
-from datetime import datetime
 
 from ..event_bus import EventBus, Event, EventPriority, get_event_bus, reset_event_bus
 

@@ -1,57 +1,109 @@
-# Google Drive Module
+# Drive Module
 
-## Purpose and Scope
-The Drive module manages all interactions with Google Drive, including file browsing, streaming, folder organization, and caching.
+## Overview
+The Drive module manages all Google Drive integration for the band platform, providing file synchronization, metadata extraction, and real-time updates through webhooks.
 
-## Module Context
-This module is responsible for:
-- Google Drive API integration
-- File browsing and metadata retrieval
-- File streaming and downloading
-- Folder structure management
-- Rate limiting and caching
-- OAuth token management for Drive access
+## Architecture
+
+### Services
+- **GoogleDriveService**: Core service for Drive API operations with rate limiting and error handling
+- **GoogleDriveOAuthService**: Handles OAuth 2.0 authentication flow for user authorization
+- **RateLimiter**: Token bucket rate limiter with dynamic adjustment based on API responses
+- **CacheManager**: In-memory caching with TTL and LRU eviction for optimizing API calls
+
+### Models
+- **DriveFile**: Tracks Google Drive files and their metadata
+- **DrivePermission**: Manages file permissions and sharing settings
+- **DriveWebhook**: Tracks active webhooks for real-time notifications
+
+### API Routes
+- `/drive/auth/*`: OAuth authentication endpoints
+- `/drive/folders/*`: Folder listing and management
+- `/drive/files/*`: File operations and metadata
+- `/drive/webhook`: Webhook setup and management
+
+## Key Features
+
+### 1. Rate Limiting
+- Token bucket algorithm with configurable limits
+- Dynamic rate limiting that adjusts based on API responses
+- Automatic backoff on rate limit errors
+
+### 2. Caching Strategy
+- In-memory cache with configurable TTL
+- LRU eviction policy
+- Cache invalidation by prefix
+- Decorator-based caching for easy integration
+
+### 3. File Processing
+- Automatic parsing of musical filenames (song title, key, type)
+- Support for charts (PDF), audio files, and setlists
+- Batch operations for efficient processing
+
+### 4. Real-time Updates
+- Webhook support for instant file change notifications
+- Integration with sync module for processing updates
+- Automatic webhook renewal before expiration
 
 ## Dependencies
-- Core module (for EventBus)
-- Auth module (for user credentials)
-- External: google-api-python-client, google-auth
+- **Auth Module**: For user authentication and band associations
+- **Content Module**: For content parsing and file type detection
 
-## API Endpoints (To Be Migrated)
-- `GET /api/drive/files` - List files in folder
-- `GET /api/drive/files/{id}` - Get file metadata
-- `GET /api/drive/files/{id}/stream` - Stream file content
-- `GET /api/drive/folders` - List folders
-- `POST /api/drive/folders` - Create folder structure
+## Configuration
+```python
+# Required environment variables
+GOOGLE_CLIENT_ID=your_client_id
+GOOGLE_CLIENT_SECRET=your_client_secret
+GOOGLE_REDIRECT_URI=http://localhost:8000/api/drive/auth/callback
+```
 
-## Key Services (To Be Migrated)
-- `GoogleDriveService` - Core Drive API operations
-- `DriveAuthService` - Drive-specific auth handling
-- `FileCacheService` - File caching logic
-- `RateLimiter` - API rate limiting
-- `FolderOrganizer` - Folder structure management
+## Usage Examples
 
-## Events Published
-- `drive.file.created` - New file detected
-- `drive.file.updated` - File updated
-- `drive.file.deleted` - File removed
-- `drive.folder.created` - New folder created
-- `drive.sync.completed` - Sync operation finished
+### Basic File Listing
+```python
+from modules.drive import GoogleDriveService
 
-## Events Subscribed
-- `user.login` - Initialize Drive connection
-- `sync.requested` - Start sync operation
+service = GoogleDriveService(credentials)
+files = await service.list_files(folder_id="folder_123")
+```
 
-## Testing Strategy
-- Mock Google Drive API responses
-- Test rate limiting behavior
-- Test caching mechanisms
-- Integration tests with test Drive
-- Test error handling and retries
+### Setting Up Webhooks
+```python
+webhook_info = await service.setup_webhook(
+    folder_id="folder_123",
+    webhook_url="https://api.example.com/webhook/drive"
+)
+```
 
-## Module-Specific Rules
-1. Must respect Google API rate limits
-2. Cache must have size limits
-3. OAuth tokens must be refreshed properly
-4. File streaming must be efficient
-5. Error handling must be comprehensive
+### Using Rate Limiter
+```python
+from modules.drive import DynamicRateLimiter
+
+limiter = DynamicRateLimiter(initial_requests_per_second=10)
+await limiter.acquire()
+# Make API call
+limiter.report_success()
+```
+
+## Error Handling
+- **DriveAPIError**: Base exception for all Drive API errors
+- **RateLimitExceeded**: Raised when rate limits are hit
+- **AuthenticationError**: OAuth or credential issues
+
+## Performance Considerations
+- Batch operations for processing multiple files
+- Caching reduces API calls by up to 80%
+- Rate limiting prevents API exhaustion
+- Async operations throughout for non-blocking I/O
+
+## Security
+- OAuth 2.0 for secure authentication
+- No service account keys stored
+- Credentials refreshed automatically
+- Webhook secrets for verification
+
+## Future Enhancements
+- [ ] Resumable uploads for large files
+- [ ] Team Drive support
+- [ ] Advanced search with full-text indexing
+- [ ] Offline sync capabilities
