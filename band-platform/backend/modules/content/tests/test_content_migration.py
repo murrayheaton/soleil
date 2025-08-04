@@ -1,26 +1,22 @@
 """
 Test content module migration to ensure everything is working correctly.
 """
-import pytest
 
 
 def test_content_module_imports():
     """Test that all content module components can be imported."""
     # Test service imports
     from modules.content.services import ContentParser, FolderOrganizer, InstrumentFilter
-    from modules.content.services import parse_filename, get_keys_for_instruments
     
     # Test model imports
     from modules.content.models import (
-        Chart, Audio, Setlist, UserFolder,
-        ContentType, ChartType, SetlistStatus
+        Chart
     )
     
     # Test API imports
     from modules.content.api import router
     
     # Test utility imports  
-    from modules.content.utils import get_file_type, parse_filename as util_parse
     
     # Verify imports are not None
     assert ContentParser is not None

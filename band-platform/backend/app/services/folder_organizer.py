@@ -7,7 +7,7 @@ All functionality has been migrated to modules.content.services.
 import warnings
 
 # Import everything from the new content module for backward compatibility
-from modules.content.services.file_organizer import *
+from modules.content.services.file_organizer import *  # noqa: F403
 
 # Show deprecation warning
 warnings.warn(

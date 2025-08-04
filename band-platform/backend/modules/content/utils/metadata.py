@@ -3,7 +3,6 @@ Metadata extraction utilities.
 
 Provides functions for extracting metadata from files.
 """
-import os
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, Optional

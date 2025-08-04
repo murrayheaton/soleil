@@ -4,11 +4,9 @@ Tests for content parser service.
 Tests filename parsing, instrument key mapping, and content accessibility checks.
 """
 import pytest
-from typing import List, Dict, Any
 
 from modules.content.services.content_parser import (
     ContentParser, 
-    parse_filename,
     get_keys_for_instruments,
     is_chart_accessible_by_user,
     INSTRUMENT_KEY_MAPPING
@@ -29,7 +27,7 @@ class TestContentParser:
         assert result.song_title == "All of Me"
         assert result.key == "Bb"
         assert result.file_type == "chart"
-        assert result.is_placeholder == False
+        assert not result.is_placeholder
     
     def test_parse_filename_with_extra_info(self, parser):
         """Test parsing filename with additional info."""
@@ -42,14 +40,14 @@ class TestContentParser:
         """Test parsing placeholder filename."""
         result = parser.parse_filename("Placeholder - Song Title.pdf")
         assert result.song_title == "Song Title"
-        assert result.key == None
-        assert result.is_placeholder == True
+        assert result.key is None
+        assert result.is_placeholder
     
     def test_parse_filename_audio_file(self, parser):
         """Test parsing audio filename."""
         result = parser.parse_filename("All of Me - Reference.mp3")
         assert result.song_title == "All of Me"
-        assert result.key == None
+        assert result.key is None
         assert result.file_type == "audio"
         assert result.extra_info == "Reference"
     
@@ -79,7 +77,7 @@ class TestContentParser:
         assert info["song_title"] == "All of Me"
         assert info["key"] == "Bb"
         assert info["file_type"] == "chart"
-        assert info["is_placeholder"] == False
+        assert not info["is_placeholder"]
         assert info["extra_info"] is None
 
 
@@ -127,39 +125,39 @@ class TestChartAccessibility:
     def test_chart_accessible_by_matching_key(self):
         """Test chart is accessible when user has matching key."""
         chart = {"key": "Bb", "is_placeholder": False}
-        assert is_chart_accessible_by_user(chart, ["trumpet"]) == True
-        assert is_chart_accessible_by_user(chart, ["alto_sax"]) == False
+        assert is_chart_accessible_by_user(chart, ["trumpet"])
+        assert not is_chart_accessible_by_user(chart, ["alto_sax"])
     
     def test_chart_accessible_concert_key(self):
         """Test concert key charts are accessible to all."""
         chart = {"key": "C", "is_placeholder": False}
-        assert is_chart_accessible_by_user(chart, ["trumpet"]) == True
-        assert is_chart_accessible_by_user(chart, ["alto_sax"]) == True
-        assert is_chart_accessible_by_user(chart, ["piano"]) == True
+        assert is_chart_accessible_by_user(chart, ["trumpet"])
+        assert is_chart_accessible_by_user(chart, ["alto_sax"])
+        assert is_chart_accessible_by_user(chart, ["piano"])
     
     def test_placeholder_accessible_to_all(self):
         """Test placeholder charts are accessible to all."""
         chart = {"key": None, "is_placeholder": True}
-        assert is_chart_accessible_by_user(chart, ["trumpet"]) == True
-        assert is_chart_accessible_by_user(chart, ["alto_sax"]) == True
-        assert is_chart_accessible_by_user(chart, []) == True
+        assert is_chart_accessible_by_user(chart, ["trumpet"])
+        assert is_chart_accessible_by_user(chart, ["alto_sax"])
+        assert is_chart_accessible_by_user(chart, [])
     
     def test_chart_accessible_multiple_instruments(self):
         """Test accessibility with multiple instruments."""
         chart = {"key": "Eb", "is_placeholder": False}
-        assert is_chart_accessible_by_user(chart, ["trumpet", "alto_sax"]) == True
-        assert is_chart_accessible_by_user(chart, ["trumpet", "tenor_sax"]) == False
+        assert is_chart_accessible_by_user(chart, ["trumpet", "alto_sax"])
+        assert not is_chart_accessible_by_user(chart, ["trumpet", "tenor_sax"])
     
     def test_chart_missing_key_field(self):
         """Test chart without key field."""
         chart = {"is_placeholder": False}
-        assert is_chart_accessible_by_user(chart, ["trumpet"]) == False
+        assert not is_chart_accessible_by_user(chart, ["trumpet"])
     
     def test_chart_missing_placeholder_field(self):
         """Test chart without is_placeholder field."""
         chart = {"key": "Bb"}
-        assert is_chart_accessible_by_user(chart, ["trumpet"]) == True
-        assert is_chart_accessible_by_user(chart, ["alto_sax"]) == False
+        assert is_chart_accessible_by_user(chart, ["trumpet"])
+        assert not is_chart_accessible_by_user(chart, ["alto_sax"])
 
 
 class TestContentParserStats:

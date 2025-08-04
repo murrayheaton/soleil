@@ -7,7 +7,7 @@ All functionality has been migrated to modules.content.models.
 import warnings
 
 # Import everything from the new content module for backward compatibility  
-from modules.content.models.content import *
+from modules.content.models.content import *  # noqa: F403
 
 # Show deprecation warning
 warnings.warn(

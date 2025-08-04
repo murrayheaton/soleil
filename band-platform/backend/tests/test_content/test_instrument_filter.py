@@ -4,7 +4,6 @@ Tests for instrument filter service.
 Tests content filtering based on user instruments and key mappings.
 """
 import pytest
-from typing import List, Dict, Any
 
 from modules.content.services.instrument_filter import InstrumentFilter
 

@@ -1,10 +1,8 @@
 """
 Simple tests for content parser service that match actual implementation.
 """
-import pytest
 from modules.content.services.content_parser import (
     ContentParser, 
-    parse_filename,
     get_keys_for_instruments,
     is_chart_accessible_by_user
 )
@@ -48,16 +46,16 @@ class TestContentParserBasic:
     def test_is_chart_accessible_by_user(self):
         """Test chart accessibility."""
         # Matching key
-        assert is_chart_accessible_by_user("Bb", ["trumpet"]) == True
-        assert is_chart_accessible_by_user("Eb", ["alto_sax"]) == True
+        assert is_chart_accessible_by_user("Bb", ["trumpet"])
+        assert is_chart_accessible_by_user("Eb", ["alto_sax"])
         
         # Non-matching key
-        assert is_chart_accessible_by_user("Eb", ["trumpet"]) == False
+        assert not is_chart_accessible_by_user("Eb", ["trumpet"])
         
         # Concert key charts need to be handled by instrument_filter
         # The base function only checks if key matches user's instruments
-        assert is_chart_accessible_by_user("C", ["piano"]) == True
-        assert is_chart_accessible_by_user("C", ["trumpet"]) == False
+        assert is_chart_accessible_by_user("C", ["piano"])
+        assert not is_chart_accessible_by_user("C", ["trumpet"])
     
     def test_parser_stats(self):
         """Test statistics tracking."""

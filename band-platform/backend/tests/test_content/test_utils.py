@@ -3,7 +3,6 @@ Tests for content module utilities.
 
 Tests file type detection, naming conventions, and metadata extraction.
 """
-import pytest
 from datetime import datetime
 
 from modules.content.utils.file_types import (
@@ -44,15 +43,15 @@ class TestFileTypes:
     
     def test_is_chart_file(self):
         """Test chart file detection."""
-        assert is_chart_file("song.pdf") == True
-        assert is_chart_file("song.mp3") == False
-        assert is_chart_file("song.txt") == False
+        assert is_chart_file("song.pdf")
+        assert not is_chart_file("song.mp3")
+        assert not is_chart_file("song.txt")
     
     def test_is_audio_file(self):
         """Test audio file detection."""
-        assert is_audio_file("song.mp3") == True
-        assert is_audio_file("song.wav") == True
-        assert is_audio_file("song.pdf") == False
+        assert is_audio_file("song.mp3")
+        assert is_audio_file("song.wav")
+        assert not is_audio_file("song.pdf")
     
     def test_all_extensions_covered(self):
         """Test that all defined extensions are recognized."""

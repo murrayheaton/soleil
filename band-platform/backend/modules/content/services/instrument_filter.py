@@ -7,12 +7,11 @@ and the key mapping logic for transposing instruments.
 import logging
 from typing import List, Dict, Any, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
 # TODO: Re-enable when auth module is available
 # from ...auth.models import User
 # from ..models import Chart, Audio
-from .content_parser import get_keys_for_instruments, is_chart_accessible_by_user
+from .content_parser import get_keys_for_instruments
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +93,7 @@ class InstrumentFilter:
         #     raise
         
         # Temporary implementation
-        logger.warning(f"get_content_for_user temporarily disabled - auth module not available")
+        logger.warning("get_content_for_user temporarily disabled - auth module not available")
         return {"charts": [], "audio": []}
     
     async def _get_filtered_charts(
