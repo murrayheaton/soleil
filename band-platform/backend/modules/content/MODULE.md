@@ -1,56 +1,151 @@
 # Content Module
 
-## Purpose and Scope
-The Content module manages all music-related content including charts (sheet music), audio files, and setlists. It handles content parsing, organization, and instrument-based filtering.
+## Overview
+The Content module handles all file parsing, organization, and instrument-based filtering for the band platform. It manages charts, audio files, and setlists with intelligent key mapping for transposing instruments.
 
-## Module Context
-This module is responsible for:
-- Content file parsing and metadata extraction
-- Instrument-based content filtering
-- Chart organization by key
-- Audio file management
-- Setlist creation and management
+## Key Features
+- File parsing for charts and audio files
+- Instrument-based key mapping and filtering
+- User folder organization
+- Support for multiple file formats (PDF, MP3, WAV, etc.)
+- Placeholder file detection
+- Smart filename parsing
+
+## Module Structure
+```
+content/
+├── api/
+│   ├── __init__.py
+│   └── content_routes.py      # Content-related endpoints
+├── models/
+│   ├── __init__.py
+│   ├── content.py             # Chart, Audio, and Setlist models
+│   └── folder_structure.py    # User folder organization models
+├── services/
+│   ├── __init__.py
+│   ├── content_parser.py      # File parsing logic
+│   ├── file_organizer.py      # User folder organization
+│   └── instrument_filter.py   # Instrument-based filtering
+├── utils/
+│   ├── __init__.py
+│   ├── file_types.py          # File type detection
+│   ├── naming.py              # Naming convention helpers
+│   └── metadata.py            # Metadata extraction
+├── tests/
+│   └── ...                    # Module tests
+└── MODULE.md                  # This file
+```
 
 ## Dependencies
-- Core module (for EventBus)
-- Auth module (for user instrument preferences)
-- External: None specific
+- Internal: auth module (for user context)
+- External: pydantic, sqlalchemy, python-magic
 
-## API Endpoints (To Be Migrated)
-- `GET /api/content/charts` - List available charts
-- `GET /api/content/charts/{id}` - Get chart details
-- `GET /api/content/audio` - List audio files
-- `GET /api/content/audio/{id}` - Get audio details
-- `GET /api/content/setlists` - List setlists
-- `POST /api/content/setlists` - Create setlist
+## Public API
+```python
+from modules.content import (
+    # API Router
+    content_router,
+    
+    # Services
+    ContentParser,
+    FileOrganizer,
+    InstrumentFilter,
+    
+    # Models
+    Chart,
+    Audio,
+    Setlist,
+    UserFolder,
+    
+    # Utilities
+    parse_filename,
+    get_file_type,
+    extract_metadata
+)
+```
 
-## Key Services (To Be Migrated)
-- `ContentParser` - Parse filenames and extract metadata
-- `InstrumentKeyMapper` - Map instruments to musical keys
-- `ChartService` - Chart management
-- `AudioService` - Audio file management
-- `SetlistService` - Setlist operations
+## Parsing Rules
 
-## Events Published
-- `content.chart.added` - New chart available
-- `content.audio.added` - New audio file available
-- `content.setlist.created` - Setlist created
-- `content.setlist.updated` - Setlist modified
+### Chart File Naming
+Charts follow the pattern: `SongTitle_Key.pdf`
+- Example: `AllOfMe_Bb.pdf` (B♭ transposed chart)
+- Example: `BlueMoon_Concert.pdf` (Concert pitch chart)
+- Example: `Summertime_X.pdf` (Placeholder)
 
-## Events Subscribed
-- `drive.file.created` - New file in Drive
-- `drive.file.updated` - File updated in Drive
-- `user.profile.updated` - User instruments changed
+### Audio File Naming
+Audio files follow the pattern: `SongTitle.ext` or `SongTitle_Type.ext`
+- Example: `AllOfMe.mp3` (Performance audio)
+- Example: `BlueMoon_Reference.mp3` (Reference track)
+- Example: `Summertime_X.mp3` (Placeholder)
 
-## Testing Strategy
-- Comprehensive unit tests for ContentParser
-- Tests for all instrument key mappings
-- Integration tests for content filtering
-- Mock file system for testing
+### Instrument Key Mapping
+```python
+INSTRUMENT_KEY_MAPPING = {
+    # B♭ Instruments
+    'trumpet': 'Bb',
+    'tenor_sax': 'Bb',
+    'soprano_sax': 'Bb',
+    'clarinet': 'Bb',
+    
+    # E♭ Instruments
+    'alto_sax': 'Eb',
+    'bari_sax': 'Eb',
+    
+    # Concert Pitch
+    'piano': 'C',
+    'guitar': 'C',
+    'bass': 'C',
+    'drums': 'C',
+    'violin': 'C',
+    'voice': 'C',
+    'trombone': 'C',
+    'flute': 'C'
+}
+```
 
-## Module-Specific Rules
-1. Content parsing must handle various filename formats
-2. Instrument filtering must be accurate
-3. Key transposition logic must be correct
-4. Setlist ordering must be preserved
-5. Content metadata must be cached appropriately
+## Common Usage Patterns
+
+### Parsing a Chart File
+```python
+parser = ContentParser()
+chart = await parser.parse_chart_file(
+    filename="AllOfMe_Bb.pdf",
+    file_id="drive_file_id",
+    band_id=1
+)
+```
+
+### Filtering Content by Instrument
+```python
+filter = InstrumentFilter()
+user_content = await filter.get_content_for_user(
+    user_id=1,
+    instruments=['alto_sax', 'flute']
+)
+```
+
+### Organizing User Folders
+```python
+organizer = FileOrganizer()
+folder_structure = await organizer.create_user_folder_structure(
+    user_id=1,
+    google_drive_service=drive_service
+)
+```
+
+## Error Handling
+- `ContentParsingError`: Raised when file parsing fails
+- `InvalidFileFormatError`: Raised for unsupported file types
+- `FolderOrganizationError`: Raised when folder operations fail
+
+## Testing
+Run module tests:
+```bash
+pytest modules/content/tests/
+```
+
+## Integration Points
+- Auth module: User context and permissions
+- Drive module: Google Drive file operations
+- Sync module: Content synchronization
+- Dashboard module: Content display
