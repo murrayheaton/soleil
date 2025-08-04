@@ -13,8 +13,8 @@ from modules.content.utils.naming import (
     format_song_title, clean_filename, generate_filename
 )
 from modules.content.utils.metadata import (
-    extract_file_metadata, format_file_size, 
-    estimate_duration_from_size
+    extract_metadata, format_file_size, 
+    get_file_info
 )
 
 
@@ -102,53 +102,38 @@ class TestNaming:
 class TestMetadata:
     """Test metadata extraction utilities."""
     
-    def test_extract_file_metadata(self):
-        """Test extracting metadata from file info."""
-        file_info = {
-            "name": "All of Me - Bb.pdf",
-            "size": 1024 * 1024,  # 1MB
-            "modifiedTime": "2024-01-15T10:30:00.000Z",
-            "mimeType": "application/pdf"
-        }
+    def test_get_file_info(self):
+        """Test getting file information."""
+        info = get_file_info("All of Me - Bb.pdf", file_id="12345", size=1024*1024)
         
-        metadata = extract_file_metadata(file_info)
-        assert metadata["filename"] == "All of Me - Bb.pdf"
-        assert metadata["size_bytes"] == 1024 * 1024
-        assert metadata["size_formatted"] == "1.00 MB"
-        assert metadata["mime_type"] == "application/pdf"
-        assert isinstance(metadata["modified_time"], datetime)
+        assert info["filename"] == "All of Me - Bb.pdf"
+        assert info["file_id"] == "12345"
+        assert info["file_type"] == "chart"
+        assert info["title"] == "All of Me"
+        assert info["key"] == "Bb"
+        assert info["extension"] == ".pdf"
+        assert info["size"] == 1024 * 1024
+        assert info["size_human"] == "1.0 MB"
     
     def test_format_file_size(self):
         """Test file size formatting."""
-        assert format_file_size(500) == "500.00 B"
-        assert format_file_size(1024) == "1.00 KB"
-        assert format_file_size(1024 * 1024) == "1.00 MB"
-        assert format_file_size(1024 * 1024 * 5.5) == "5.50 MB"
-        assert format_file_size(1024 * 1024 * 1024) == "1.00 GB"
-        assert format_file_size(0) == "0.00 B"
+        assert format_file_size(500) == "500.0 B"
+        assert format_file_size(1024) == "1.0 KB"
+        assert format_file_size(1024 * 1024) == "1.0 MB"
+        assert format_file_size(1024 * 1024 * 5.5) == "5.5 MB"
+        assert format_file_size(1024 * 1024 * 1024) == "1.0 GB"
+        assert format_file_size(0) == "0.0 B"
+        assert format_file_size(None) == "Unknown"
     
-    def test_estimate_duration_from_size(self):
-        """Test estimating audio duration from file size."""
-        # MP3 at ~128kbps
-        mp3_size = 128 * 1024 / 8 * 60  # 1 minute
-        duration = estimate_duration_from_size(mp3_size, "audio/mpeg")
-        assert 55 <= duration <= 65  # Allow some variance
+    def test_get_file_info_minimal(self):
+        """Test file info with minimal data."""
+        info = get_file_info("test.mp3")
         
-        # WAV is much larger
-        wav_size = mp3_size * 10
-        duration = estimate_duration_from_size(wav_size, "audio/wav")
-        assert 55 <= duration <= 65  # Still ~1 minute
-        
-        # Unknown format returns None
-        assert estimate_duration_from_size(1024, "application/pdf") is None
-    
-    def test_extract_metadata_missing_fields(self):
-        """Test metadata extraction with missing fields."""
-        file_info = {"name": "test.pdf"}
-        metadata = extract_file_metadata(file_info)
-        
-        assert metadata["filename"] == "test.pdf"
-        assert metadata["size_bytes"] == 0
-        assert metadata["size_formatted"] == "0.00 B"
-        assert metadata["mime_type"] == "unknown"
-        assert metadata["modified_time"] is None
+        assert info["filename"] == "test.mp3"
+        assert info["file_id"] is None
+        assert info["file_type"] == "audio"
+        assert info["title"] == "test"
+        assert info["key"] is None
+        assert info["extension"] == ".mp3"
+        assert info["size"] is None
+        assert info["size_human"] is None
