@@ -1,5 +1,9 @@
 # Authentication Module
 
+**Version:** 1.0.0  
+**Last Updated:** 2025-08-05  
+**Status:** Active
+
 ## Purpose and Scope
 The Authentication module manages user authentication, authorization, and session management for the SOLEil platform. It handles Google OAuth integration, JWT token management, and user profile operations.
 

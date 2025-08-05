@@ -1,4 +1,8 @@
-# Google Drive Module
+# # Google Drive Module
+
+**Version:** 1.0.0  
+**Last Updated:** 2025-08-05  
+**Status:** Active
 
 ## Purpose and Scope
 The Drive module manages all interactions with Google Drive, including file browsing, streaming, folder organization, and caching.

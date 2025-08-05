@@ -1,4 +1,8 @@
-# Dashboard Module
+# # Dashboard Module
+
+**Version:** 1.0.0  
+**Last Updated:** 2025-08-05  
+**Status:** Active
 
 ## Purpose and Scope
 The Dashboard module provides analytics, monitoring, and administrative functionality for the SOLEil platform. It aggregates data from other modules to provide insights and system health information.

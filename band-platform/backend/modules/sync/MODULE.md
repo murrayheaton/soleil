@@ -1,4 +1,8 @@
-# Synchronization Module
+# # Synchronization Module
+
+**Version:** 1.0.0  
+**Last Updated:** 2025-08-05  
+**Status:** Active
 
 ## Purpose and Scope
 The Sync module manages real-time synchronization between the backend and frontend clients using WebSocket connections. It handles file change detection, sync state management, and event broadcasting.

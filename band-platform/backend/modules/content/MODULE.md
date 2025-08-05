@@ -1,5 +1,9 @@
 # Content Module
 
+**Version:** 1.0.0  
+**Last Updated:** 2025-08-05  
+**Status:** Active
+
 ## Purpose and Scope
 The Content module manages all music-related content including charts (sheet music), audio files, and setlists. It handles content parsing, organization, and instrument-based filtering.
 

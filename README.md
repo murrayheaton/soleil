@@ -41,11 +41,25 @@ docker-compose up
 
 ## 🏗️ Architecture
 
+### Modular Architecture
+The platform uses a modular architecture designed for scalability and multi-agent development:
+
+- **Auth Module (v1.0.0)**: Google OAuth, JWT tokens, session management
+- **Content Module (v1.0.0)**: File parsing, metadata extraction, instrument filtering
+- **Drive Module (v1.0.0)**: Google Drive integration, file streaming, caching
+- **Sync Module (v1.0.0)**: Real-time WebSocket updates, event broadcasting
+- **Dashboard Module (v1.0.0)**: Customizable UI components, user preferences
+- **Core Module (v1.0.0)**: Event bus, API gateway, shared infrastructure
+
+### Technology Stack
 - **Backend**: FastAPI (Python) with async support
 - **Frontend**: Next.js 15 with TypeScript and Tailwind CSS
-- **Database**: PostgreSQL
+- **Database**: PostgreSQL with SQLAlchemy ORM
 - **File Storage**: Google Drive integration
-- **Authentication**: JWT tokens with Google OAuth planned
+- **Authentication**: JWT tokens with Google OAuth
+- **Real-time**: WebSocket support for live updates
+
+See [MODULES.md](MODULES.md) for detailed module documentation.
 
 ## 📁 Project Structure
 
