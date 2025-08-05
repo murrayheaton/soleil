@@ -79,7 +79,8 @@
       "Bash(for subdir in api services models tests)",
       "Bash(done)",
       "Bash(venv_linux/bin/pip list:*)",
-      "Bash(claude mcp add:*)"
+      "Bash(claude mcp add:*)",
+      "Bash(claude mcp)"
     ],
     "deny": []
   }
