@@ -37,6 +37,14 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Import and register module routes
+try:
+    from modules.core.module_routes import router as module_router
+    app.include_router(module_router)
+    logger.info("Module management routes registered")
+except Exception as e:
+    logger.warning(f"Could not register module routes: {e}")
+
 # CORS - Updated for production and local development
 cors_origins = os.getenv(
     'CORS_ORIGINS',

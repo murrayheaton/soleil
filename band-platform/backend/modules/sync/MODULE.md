@@ -1,5 +1,9 @@
 # Sync Module
 
+**Version:** 1.0.0  
+**Last Updated:** 2025-08-05  
+**Status:** Active
+
 ## Overview
 The Sync module orchestrates real-time synchronization between Google Workspace services (Drive, Sheets, Calendar) and the band platform, providing webhook processing, WebSocket broadcasting, and comprehensive sync management.
 

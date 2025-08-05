@@ -1,4 +1,8 @@
-# Core Module
+# # Core Module
+
+**Version:** 1.0.0  
+**Last Updated:** 2025-08-05  
+**Status:** Active
 
 ## Purpose and Scope
 The Core module provides shared infrastructure and utilities that all other SOLEil modules depend on. It acts as the foundation for the modular architecture.

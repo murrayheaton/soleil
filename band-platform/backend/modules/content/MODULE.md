@@ -1,5 +1,9 @@
 # Content Module
 
+**Version:** 1.0.0  
+**Last Updated:** 2025-08-05  
+**Status:** Active
+
 ## Overview
 The Content module handles all file parsing, organization, and instrument-based filtering for the band platform. It manages charts, audio files, and setlists with intelligent key mapping for transposing instruments.
 

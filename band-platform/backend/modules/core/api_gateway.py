@@ -23,6 +23,8 @@ class ModuleInfo:
     dependencies: List[str]
     registered_at: datetime
     metadata: Dict[str, Any]
+    health_check: Optional[Callable] = None
+    services: Dict[str, Any] = None
 
 
 class APIGateway:
@@ -40,6 +42,7 @@ class APIGateway:
         self._app = app
         self._modules: Dict[str, ModuleInfo] = {}
         self._initialization_order: List[str] = []
+        self._services: Dict[str, Dict[str, Any]] = {}
         
     def set_app(self, app: FastAPI) -> None:
         """Set the FastAPI application instance"""
@@ -56,7 +59,9 @@ class APIGateway:
         version: str = "1.0.0",
         description: str = "",
         dependencies: Optional[List[str]] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
+        health_check: Optional[Callable] = None,
+        services: Optional[Dict[str, Any]] = None
     ) -> None:
         """
         Register a module with the gateway.
@@ -90,8 +95,14 @@ class APIGateway:
             router=router,
             dependencies=dependencies,
             registered_at=datetime.now(timezone.utc),
-            metadata=metadata
+            metadata=metadata,
+            health_check=health_check,
+            services=services or {}
         )
+        
+        # Register services
+        if services:
+            self._services[name] = services
         
         # Register module
         self._modules[name] = module_info
@@ -186,6 +197,94 @@ class APIGateway:
             if hasattr(route, 'path'):
                 routes.append(route.path)
         return routes
+    
+    def get_module_service(self, module_name: str, service_name: str) -> Any:
+        """
+        Get a service from another module.
+        
+        Args:
+            module_name: Name of the module
+            service_name: Name of the service
+            
+        Returns:
+            The requested service instance
+            
+        Raises:
+            ValueError: If module or service not found
+        """
+        if module_name not in self._services:
+            raise ValueError(f"Module {module_name} not found or has no services")
+        
+        if service_name not in self._services[module_name]:
+            raise ValueError(f"Service {service_name} not found in module {module_name}")
+        
+        return self._services[module_name][service_name]
+    
+    async def check_module_health(self, name: str) -> Dict[str, Any]:
+        """
+        Check health of a specific module.
+        
+        Args:
+            name: Module name
+            
+        Returns:
+            Health check result
+        """
+        module = self.get_module(name)
+        if not module:
+            return {"status": "error", "message": "Module not found"}
+        
+        if not module.health_check:
+            return {"status": "ok", "message": "No health check defined"}
+        
+        try:
+            # Support both sync and async health checks
+            import asyncio
+            if asyncio.iscoroutinefunction(module.health_check):
+                result = await module.health_check()
+            else:
+                result = module.health_check()
+            
+            return {
+                "status": "ok",
+                "module": name,
+                "version": module.version,
+                "details": result
+            }
+        except Exception as e:
+            logger.error(f"Health check failed for module {name}: {e}")
+            return {
+                "status": "error",
+                "module": name,
+                "message": str(e)
+            }
+    
+    async def check_all_health(self) -> Dict[str, Dict[str, Any]]:
+        """Check health of all registered modules"""
+        results = {}
+        for name in self._modules:
+            results[name] = await self.check_module_health(name)
+        return results
+    
+    def validate_module_dependencies(self, name: str) -> Dict[str, bool]:
+        """
+        Validate a module's dependencies are available and healthy.
+        
+        Args:
+            name: Module name
+            
+        Returns:
+            Dict mapping dependency names to availability status
+        """
+        module = self.get_module(name)
+        if not module:
+            return {}
+        
+        results = {}
+        for dep in module.dependencies:
+            results[dep] = dep in self._modules
+        
+        return results
 
 
 # Global API gateway instance

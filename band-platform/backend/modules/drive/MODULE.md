@@ -1,5 +1,9 @@
 # Drive Module
 
+**Version:** 1.0.0  
+**Last Updated:** 2025-08-05  
+**Status:** Active
+
 ## Overview
 The Drive module manages all Google Drive integration for the band platform, providing file synchronization, metadata extraction, and real-time updates through webhooks.
 
