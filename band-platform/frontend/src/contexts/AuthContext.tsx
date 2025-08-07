@@ -71,6 +71,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(data.user);
         setIsAuthenticated(true);
         
+        // Set the auth cookie that middleware expects
+        document.cookie = `soleil_auth=true; path=/; max-age=86400; SameSite=Lax`;
+        
         // Store auth state in localStorage for persistence
         localStorage.setItem('soleil_auth', JSON.stringify({
           user: data.user,

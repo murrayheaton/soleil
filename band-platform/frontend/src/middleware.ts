@@ -16,8 +16,12 @@ export function middleware(request: NextRequest) {
   const normalizedPublicRoutes = publicRoutes.map(normalizePath);
   const isPublicRoute = normalizedPublicRoutes.includes(normalizedPathname);
 
-  const isAuthenticated = request.cookies.get('soleil_auth') ||
-                         searchParams.get('auth') === 'success';
+  // Check for authentication in cookies
+  const hasAuthCookie = request.cookies.has('soleil_auth');
+  const hasSessionCookie = request.cookies.has('soleil_session');
+  const hasAuthParam = searchParams.get('auth') === 'success';
+  
+  const isAuthenticated = hasAuthCookie || hasSessionCookie || hasAuthParam;
 
   if (isPublicRoute) {
     if (normalizedPathname === '/login' && isAuthenticated) {

@@ -53,6 +53,14 @@ try:
 except Exception as e:
     logger.warning(f"Could not register auth validation routes: {e}")
 
+# Import and register user profile routes
+try:
+    from app.api.user_routes import router as user_router
+    app.include_router(user_router)
+    logger.info("User profile routes registered")
+except Exception as e:
+    logger.warning(f"Could not register user profile routes: {e}")
+
 # CORS - Updated for production and local development
 cors_origins = os.getenv(
     'CORS_ORIGINS',

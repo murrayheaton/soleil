@@ -41,15 +41,26 @@ export default function ProfileOnboarding({ initialData, onComplete }: ProfileOn
       });
 
       if (response.ok) {
+        const data = await response.json();
+        console.log('Profile saved successfully:', data);
+        
         // Set profile complete cookie
         document.cookie = 'soleil_profile_complete=true; path=/; max-age=86400'; // 24 hours
+        // Also set auth cookie to ensure middleware knows we're authenticated
+        document.cookie = 'soleil_auth=true; path=/; max-age=86400';
+        
         onComplete();
         router.push('/dashboard'); // Go to dashboard instead of repertoire
       } else {
         // Profile creation failed
+        const errorText = await response.text();
+        console.error('Profile save failed:', response.status, errorText);
+        alert(`Failed to save profile: ${errorText || response.statusText}. Please try again.`);
       }
-    } catch {
+    } catch (error) {
       // Profile creation error
+      console.error('Profile save error:', error);
+      alert('An error occurred while saving your profile. Please check your connection and try again.');
     } finally {
       setIsSubmitting(false);
     }
