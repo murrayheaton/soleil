@@ -117,16 +117,19 @@ export default function ProfileOnboarding({ initialData, onComplete }: ProfileOn
             </div>
           </div>
 
-          {/* Email Field (Read-only) */}
+          {/* Email Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Email
+              Email *
             </label>
             <input
               type="email"
+              name="email"
+              required
               value={formData.email}
-              readOnly
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-600 dark:text-gray-300"
+              onChange={handleInputChange}
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+              placeholder="your.email@example.com"
             />
           </div>
 

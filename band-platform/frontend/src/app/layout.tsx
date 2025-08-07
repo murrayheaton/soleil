@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Layout from "@/components/Layout";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -33,7 +34,9 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
       </head>
       <body className={`${inter.className} antialiased`}>
-        {isLoginPage ? children : <Layout>{children}</Layout>}
+        <AuthProvider>
+          {isLoginPage ? children : <Layout>{children}</Layout>}
+        </AuthProvider>
       </body>
     </html>
   );

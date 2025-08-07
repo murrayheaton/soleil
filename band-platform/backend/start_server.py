@@ -45,6 +45,14 @@ try:
 except Exception as e:
     logger.warning(f"Could not register module routes: {e}")
 
+# Import and register auth validation routes
+try:
+    from app.api.auth.validate import router as auth_validate_router
+    app.include_router(auth_validate_router)
+    logger.info("Auth validation routes registered")
+except Exception as e:
+    logger.warning(f"Could not register auth validation routes: {e}")
+
 # CORS - Updated for production and local development
 cors_origins = os.getenv(
     'CORS_ORIGINS',
