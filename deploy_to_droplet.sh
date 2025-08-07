@@ -11,7 +11,7 @@ echo "=================================================="
 # You can find this in your Digital Ocean dashboard
 DROPLET_IP="159.203.62.132"  # <-- REPLACE WITH YOUR DROPLET IP!
 DROPLET_USER="root"            # Default for Digital Ocean
-PROJECT_PATH="/var/www/soleil" # Standard deployment path
+PROJECT_PATH="/root/soleil" # Actual deployment path on your droplet
 
 # Colors for output
 RED='\033[0;31m'
@@ -24,13 +24,13 @@ NC='\033[0m' # No Color
 echo -e "${YELLOW}📋 Step 1: Connect to droplet and pull latest code${NC}"
 echo "Connecting to solepower.live droplet..."
 ssh $DROPLET_USER@$DROPLET_IP << 'ENDSSH'
-    # Try common deployment paths
-    if [ -d "/var/www/soleil" ]; then
-        cd /var/www/soleil
+    # Navigate to project directory
+    if [ -d "/root/soleil" ]; then
+        cd /root/soleil
+    elif [ -d "/var/www/soleil" ]; then
+        cd /root/soleil
     elif [ -d "/opt/soleil" ]; then
         cd /opt/soleil
-    elif [ -d "/home/soleil" ]; then
-        cd /home/soleil
     else
         echo "❌ Could not find project directory. Checking common locations..."
         find / -maxdepth 3 -name "soleil" -type d 2>/dev/null | head -5
@@ -54,7 +54,7 @@ ENDSSH
 
 echo -e "${YELLOW}📋 Step 2: Install backend dependencies${NC}"
 ssh $DROPLET_USER@$DROPLET_IP << 'ENDSSH'
-    cd /var/www/soleil/band-platform/backend
+    cd /root/soleil/band-platform/backend
     
     # Install PyJWT for authentication
     echo "Installing PyJWT..."
@@ -65,7 +65,7 @@ ENDSSH
 
 echo -e "${YELLOW}📋 Step 3: Build frontend${NC}"
 ssh $DROPLET_USER@$DROPLET_IP << 'ENDSSH'
-    cd /var/www/soleil/band-platform/frontend
+    cd /root/soleil/band-platform/frontend
     
     # Install any new dependencies
     echo "Installing frontend dependencies..."
@@ -90,7 +90,7 @@ ssh $DROPLET_USER@$DROPLET_IP << 'ENDSSH'
     sudo systemctl restart soleil-backend || pm2 restart soleil-backend || {
         echo "Manual restart needed - killing old process"
         pkill -f "python.*start_server.py"
-        cd /var/www/soleil/band-platform/backend
+        cd /root/soleil/band-platform/backend
         nohup python3 start_server.py > backend.log 2>&1 &
     }
     
@@ -114,7 +114,7 @@ ssh $DROPLET_USER@$DROPLET_IP << 'ENDSSH'
     curl -s http://localhost:8000/api/auth/validate || echo "Backend check failed"
     
     # Check latest commit
-    cd /var/www/soleil
+    cd /root/soleil
     echo "Latest commit on server:"
     git log --oneline -1
 ENDSSH

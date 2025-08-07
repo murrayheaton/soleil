@@ -1,0 +1,330 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Build and Push Docker Images
+  build-and-push:
+    name: Build and Push Docker Images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      
+    outputs:
+      backend-image: ${{ steps.backend-meta.outputs.tags }}
+      frontend-image: ${{ steps.frontend-meta.outputs.tags }}
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          
+      # Backend Docker Build
+      - name: Extract backend metadata
+        id: backend-meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+            
+      - name: Build and push backend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./band-platform/backend
+          push: true
+          tags: ${{ steps.backend-meta.outputs.tags }}
+          labels: ${{ steps.backend-meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          
+      # Frontend Docker Build
+      - name: Extract frontend metadata
+        id: frontend-meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+            
+      - name: Build and push frontend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./band-platform/frontend
+          push: true
+          tags: ${{ steps.frontend-meta.outputs.tags }}
+          labels: ${{ steps.frontend-meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            VITE_API_URL=${{ secrets.PROD_API_URL }}
+            VITE_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+
+  # Deploy to Staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.ref == 'refs/heads/main' || github.event.inputs.environment == 'staging'
+    environment:
+      name: staging
+      url: https://staging.solepower.live
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Deploy to staging server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            # Pull latest images
+            docker pull ${{ needs.build-and-push.outputs.backend-image }}
+            docker pull ${{ needs.build-and-push.outputs.frontend-image }}
+            
+            # Update docker-compose
+            cd /opt/soleil
+            docker-compose down
+            docker-compose up -d
+            
+            # Run migrations
+            docker-compose exec backend alembic upgrade head
+            
+            # Health check
+            sleep 10
+            curl -f https://staging.solepower.live/health || exit 1
+            
+      - name: Run smoke tests
+        run: |
+          npm install -g newman
+          newman run tests/postman/smoke-tests.json \
+            --env-var "base_url=https://staging.solepower.live" \
+            --env-var "api_key=${{ secrets.STAGING_API_KEY }}"
+            
+      - name: Notify Slack
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: 'Staging deployment ${{ job.status }}'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Deploy to Production
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build-and-push, deploy-staging]
+    if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.environment == 'production'
+    environment:
+      name: production
+      url: https://solepower.live
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Create backup
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            # Backup database
+            docker-compose exec -T postgres pg_dump -U soleil soleil_prod > backup-$(date +%Y%m%d-%H%M%S).sql
+            
+            # Backup volumes
+            docker run --rm -v soleil_uploads:/data -v $(pwd):/backup alpine tar czf /backup/uploads-$(date +%Y%m%d-%H%M%S).tar.gz -C /data .
+            
+      - name: Deploy to production server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            # Blue-green deployment
+            cd /opt/soleil
+            
+            # Start new containers with -blue suffix
+            docker-compose -f docker-compose.blue.yml up -d
+            
+            # Wait for health check
+            sleep 20
+            if ! curl -f http://localhost:8001/health; then
+              echo "Blue deployment failed health check"
+              docker-compose -f docker-compose.blue.yml down
+              exit 1
+            fi
+            
+            # Switch traffic to blue
+            docker-compose -f docker-compose.nginx.yml up -d
+            
+            # Stop green containers
+            docker-compose down
+            
+            # Rename blue to green for next deployment
+            mv docker-compose.blue.yml docker-compose.yml
+            
+      - name: Run production tests
+        run: |
+          npm install -g newman
+          newman run tests/postman/production-tests.json \
+            --env-var "base_url=https://solepower.live" \
+            --env-var "api_key=${{ secrets.PROD_API_KEY }}"
+            
+      - name: Create release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v1
+        with:
+          generate_release_notes: true
+          files: |
+            CHANGELOG.md
+            
+      - name: Notify team
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            Production deployment ${{ job.status }}
+            Version: ${{ github.ref_name }}
+            Deployed by: ${{ github.actor }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Rollback Production (Manual Trigger)
+  rollback-production:
+    name: Rollback Production
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && failure()
+    environment:
+      name: production-rollback
+      
+    steps:
+      - name: Rollback deployment
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            cd /opt/soleil
+            
+            # Restore from backup
+            docker-compose down
+            docker-compose up -d postgres
+            sleep 10
+            
+            # Restore database
+            docker-compose exec -T postgres psql -U soleil soleil_prod < $(ls -t backup-*.sql | head -1)
+            
+            # Start previous version
+            docker-compose up -d
+            
+      - name: Notify team
+        uses: 8398a7/action-slack@v3
+        with:
+          status: 'warning'
+          text: 'Production rollback initiated by ${{ github.actor }}'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Performance Testing (Post-Deployment)
+  performance-test:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          urls: |
+            https://staging.solepower.live
+            https://staging.solepower.live/bands
+            https://staging.solepower.live/calendar
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+          
+      - name: Run k6 load tests
+        uses: grafana/k6-action@v0.3.0
+        with:
+          filename: tests/k6/load-test.js
+          cloud: true
+        env:
+          K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
+          
+      - name: Analyze results
+        run: |
+          echo "Performance test results available in artifacts"
+
+  # Database Migration Job
+  database-migration:
+    name: Database Migration
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: contains(github.event.head_commit.message, '[migration]')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Run migrations
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            cd /opt/soleil
+            
+            # Backup before migration
+            docker-compose exec -T postgres pg_dump -U soleil soleil_prod > pre-migration-backup.sql
+            
+            # Run migration
+            docker-compose exec backend alembic upgrade head
+            
+            # Verify migration
+            docker-compose exec backend python -c "from app.database import verify_schema; verify_schema()"

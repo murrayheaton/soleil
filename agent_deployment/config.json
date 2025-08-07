@@ -1,0 +1,135 @@
+{
+  "orchestrator": {
+    "max_parallel_tasks": 5,
+    "task_timeout": 3600,
+    "retry_limit": 3,
+    "monitoring_interval": 60
+  },
+  "agents": {
+    "planning": {
+      "enabled": true,
+      "max_concurrent": 1,
+      "timeout": 1800,
+      "context_file": "agent_contexts/soleil_agents/planning_agent.md"
+    },
+    "frontend": {
+      "enabled": true,
+      "max_concurrent": 2,
+      "timeout": 3600,
+      "context_file": "agent_contexts/soleil_agents/frontend_agent.md"
+    },
+    "backend": {
+      "enabled": true,
+      "max_concurrent": 2,
+      "timeout": 3600,
+      "context_file": "agent_contexts/soleil_agents/backend_agent.md"
+    },
+    "database": {
+      "enabled": true,
+      "max_concurrent": 1,
+      "timeout": 2400,
+      "context_file": "agent_contexts/soleil_agents/database_agent.md"
+    },
+    "security": {
+      "enabled": true,
+      "max_concurrent": 1,
+      "timeout": 1800,
+      "context_file": "agent_contexts/soleil_agents/security_agent.md"
+    },
+    "unit_test": {
+      "enabled": true,
+      "max_concurrent": 3,
+      "timeout": 2400,
+      "context_file": "agent_contexts/soleil_agents/unit_test_agent.md"
+    },
+    "integration_test": {
+      "enabled": true,
+      "max_concurrent": 2,
+      "timeout": 3600,
+      "context_file": "agent_contexts/soleil_agents/integration_test_agent.md"
+    },
+    "e2e_test": {
+      "enabled": true,
+      "max_concurrent": 1,
+      "timeout": 4800,
+      "context_file": "agent_contexts/soleil_agents/e2e_test_agent.md"
+    },
+    "devops": {
+      "enabled": true,
+      "max_concurrent": 1,
+      "timeout": 3600,
+      "context_file": "agent_contexts/soleil_agents/devops_agent.md"
+    },
+    "code_review": {
+      "enabled": true,
+      "max_concurrent": 2,
+      "timeout": 1800,
+      "context_file": "agent_contexts/soleil_agents/code_review_agent.md"
+    },
+    "documentation": {
+      "enabled": true,
+      "max_concurrent": 2,
+      "timeout": 2400,
+      "context_file": "agent_contexts/soleil_agents/documentation_agent.md"
+    }
+  },
+  "deployment": {
+    "environment": "production",
+    "api_endpoint": "https://solepower.live/api",
+    "monitoring_endpoint": "http://localhost:8080/metrics",
+    "log_level": "INFO",
+    "enable_metrics": true,
+    "enable_tracing": true
+  },
+  "task_routing": {
+    "rules": [
+      {
+        "pattern": ".*API.*|.*endpoint.*|.*backend.*",
+        "agent": "backend"
+      },
+      {
+        "pattern": ".*UI.*|.*component.*|.*frontend.*",
+        "agent": "frontend"
+      },
+      {
+        "pattern": ".*database.*|.*schema.*|.*migration.*",
+        "agent": "database"
+      },
+      {
+        "pattern": ".*test.*|.*testing.*",
+        "agents": ["unit_test", "integration_test"]
+      },
+      {
+        "pattern": ".*security.*|.*vulnerability.*",
+        "agent": "security"
+      },
+      {
+        "pattern": ".*deploy.*|.*CI/CD.*",
+        "agent": "devops"
+      },
+      {
+        "pattern": ".*document.*|.*docs.*",
+        "agent": "documentation"
+      }
+    ],
+    "default_agent": "planning"
+  },
+  "quality_gates": {
+    "code_coverage_threshold": 80,
+    "max_complexity": 10,
+    "security_scan_required": true,
+    "review_required": true,
+    "documentation_required": true
+  },
+  "performance_targets": {
+    "max_prp_duration_hours": 8,
+    "max_task_duration_minutes": 60,
+    "target_success_rate": 95,
+    "max_queue_size": 50
+  },
+  "notification": {
+    "enabled": false,
+    "channels": ["email", "slack"],
+    "events": ["prp_complete", "task_failed", "system_error"]
+  }
+}

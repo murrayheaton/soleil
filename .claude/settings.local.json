@@ -80,7 +80,12 @@
       "Bash(done)",
       "Bash(venv_linux/bin/pip list:*)",
       "Bash(claude mcp add:*)",
-      "Bash(claude mcp)"
+      "Bash(claude mcp)",
+      "Bash(node:*)",
+      "Bash(echo:*)",
+      "Bash(ssh:*)",
+      "Bash(/Users/murrayheaton/Documents/GitHub/soleil/add_ssh_key.sh:*)",
+      "Bash(/Users/murrayheaton/Documents/GitHub/soleil/ssh_auto_add.exp:*)"
     ],
     "deny": []
   }

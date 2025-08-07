@@ -1,0 +1,60 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "pypsyv-kumxen-jIkm4y"
+set host "159.203.62.132"
+set user "root"
+set pubkey "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAry4M+75lJSQGqWkNm3eG+ItROJNZGsffSt3k192tsk murray@soleil"
+
+spawn ssh-copy-id -i /Users/murrayheaton/.ssh/id_ed25519.pub $user@$host
+
+expect {
+    "yes/no" {
+        send "yes\r"
+        exp_continue
+    }
+    "password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "Number of key(s) added" {
+        puts "\nSSH key successfully added!"
+        exit 0
+    }
+    "Permission denied" {
+        puts "\nPassword authentication may be disabled. Trying manual method..."
+        
+        # Try manual SSH connection
+        spawn ssh $user@$host
+        expect {
+            "password:" {
+                send "$password\r"
+                expect {
+                    "root@*" {
+                        send "mkdir -p ~/.ssh\r"
+                        send "echo '$pubkey' >> ~/.ssh/authorized_keys\r"
+                        send "chmod 600 ~/.ssh/authorized_keys\r"
+                        send "chmod 700 ~/.ssh\r"
+                        send "exit\r"
+                        puts "\nSSH key manually added!"
+                        exit 0
+                    }
+                    "Permission denied" {
+                        puts "\nPassword authentication is disabled on the server."
+                        exit 1
+                    }
+                }
+            }
+            "Permission denied" {
+                puts "\nCannot connect with password. Password auth is disabled."
+                exit 1
+            }
+        }
+    }
+    timeout {
+        puts "\nConnection timed out"
+        exit 1
+    }
+}
+
+expect eof
