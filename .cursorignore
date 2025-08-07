@@ -1,0 +1,40 @@
+# Limit AI context to relevant application code; exclude noisy/sensitive areas
+
+# Dependencies and build artifacts
+**/node_modules/**
+**/.next/**
+**/dist/**
+**/build/**
+**/__pycache__/**
+**/.pytest_cache/**
+**/.mypy_cache/**
+**/.venv/**
+**/venv*/**
+
+# Logs and temporary files
+**/*.log
+cleanup_*.log
+**/logs/**
+
+# Backups and archived data
+**/*.backup
+apps/backend/auth_migration_backup/**
+
+# Environment and credentials (never surface to AI)
+**/.env
+**/.env.*
+**/google_token.json*
+**/user_profiles.json*
+
+# Agent-related contexts and orchestration (out of scope for app dev)
+agents/**
+mcp-server/**
+scripts/agent_tools/**
+
+# Large or auxiliary content not needed for code reasoning
+audio_system_parts/**
+chart_viewer_modules/**
+pwa_components/**
+
+# Keep the main application code visible (apps/**)
+
