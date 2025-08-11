@@ -27,17 +27,17 @@ def init_modules(app: FastAPI) -> None:
     logger.info("Initializing modules...")
     
     try:
-        # Register all modules
+        # Register all modules through the API gateway
         register_all_modules(app)
         
-        # Add module-specific routes
-        from .drive.api import drive_routes
-        from .sync.api import sync_routes
+        # Remove duplicate route registrations - now handled by API gateway
+        # from .drive.api import drive_routes
+        # from .sync.api import sync_routes
         
         # Include module routes directly (in addition to gateway routes)
         # This allows both /api/modules/drive/* and /api/drive/* patterns
-        app.include_router(drive_routes.router, prefix="/api", tags=["drive"])
-        app.include_router(sync_routes.router, prefix="/api", tags=["sync"])
+        # app.include_router(drive_routes.router, prefix="/api", tags=["drive"])
+        # app.include_router(sync_routes.router, prefix="/api", tags=["sync"])
         
         logger.info("Module initialization complete")
         
