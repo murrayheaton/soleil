@@ -40,16 +40,22 @@ async def get_user_profile(request: Request):
     from app.services.profile_service import profile_service
     
     try:
-        # Try to get existing profile
-        profile = await profile_service.get_or_create_profile(
-            user_id=user.get("id", user.get("email")),
-            email=user.get("email", ""),
-            name=user.get("name", "")
-        )
+        # Check if user is new first
+        is_new = await profile_service.is_new_user(user.get("id", user.get("email")))
         
-        if profile.get("is_new"):
+        if is_new:
             # Return 404 for new users to trigger onboarding
             raise HTTPException(status_code=404, detail="Profile not found")
+        
+        # Get existing profile (don't create new one)
+        profiles = await profile_service._load_profiles()
+        user_id = user.get("id", user.get("email"))
+        
+        if user_id not in profiles:
+            # User has no profile - return 404
+            raise HTTPException(status_code=404, detail="Profile not found")
+        
+        profile = profiles[user_id]
         
         return {
             "status": "success",
@@ -79,51 +85,56 @@ async def save_user_profile(request: Request, response: Response):
     from app.services.profile_service import profile_service
     
     try:
-        # Create or update profile
-        profile = await profile_service.get_or_create_profile(
-            user_id=user.get("id", user.get("email")),
-            email=profile_data.get("email"),
-            name=profile_data.get("name")
-        )
+        user_id = user.get("id", user.get("email"))
         
-        # Update with additional fields
-        if profile_data.get("instrument"):
-            profile["instrument"] = profile_data.get("instrument")
-            profile["transposition"] = profile_data.get("transposition", "")
-            profile["display_name"] = profile_data.get("display_name", "")
+        # Check if profile already exists
+        profiles = await profile_service._load_profiles()
         
-        # Save updated profile
-        updated_profile = await profile_service.update_profile(
-            user_id=user.get("id", user.get("email")),
-            updates=profile
-        )
-        
-        if not updated_profile:
-            raise HTTPException(status_code=500, detail="Failed to save profile")
-        
-        # Set profile complete cookie
-        response.set_cookie(
-            key="soleil_profile_complete",
-            value="true",
-            max_age=86400 * 30,  # 30 days
-            httponly=False,
-            samesite="lax"
-        )
-        
-        # Also ensure auth cookie is set for middleware
-        response.set_cookie(
-            key="soleil_auth",
-            value="true",
-            max_age=86400,
-            httponly=False,
-            samesite="lax"
-        )
-        
-        return {
-            "status": "success",
-            "profile": updated_profile,
-            "message": "Profile saved successfully"
-        }
+        if user_id in profiles:
+            # Update existing profile
+            profile = profiles[user_id]
+            
+            # Update with additional fields
+            if profile_data.get("instrument"):
+                profile["instrument"] = profile_data.get("instrument")
+                profile["transposition"] = profile_data.get("transposition", "")
+                profile["display_name"] = profile_data.get("display_name", "")
+            
+            # Save updated profile
+            updated_profile = await profile_service.update_profile(
+                user_id=user_id,
+                updates=profile
+            )
+            
+            return {
+                "status": "success",
+                "profile": updated_profile
+            }
+        else:
+            # Create new profile (this is the welcome screen flow)
+            new_profile = {
+                "id": user_id,
+                "email": profile_data.get("email"),
+                "name": profile_data.get("name"),
+                "instrument": profile_data.get("instrument", ""),
+                "transposition": profile_data.get("transposition", ""),
+                "display_name": profile_data.get("display_name", ""),
+                "instruments": [profile_data.get("instrument")] if profile_data.get("instrument") else [],
+                "ui_scale": "small",
+                "created_at": datetime.utcnow().isoformat(),
+                "updated_at": datetime.utcnow().isoformat(),
+                "last_accessed": datetime.utcnow().isoformat(),
+                "is_new": False
+            }
+            
+            # Save new profile
+            profiles[user_id] = new_profile
+            await profile_service._save_profiles(profiles)
+            
+            return {
+                "status": "success",
+                "profile": new_profile
+            }
         
     except HTTPException:
         raise
