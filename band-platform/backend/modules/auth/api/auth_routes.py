@@ -48,10 +48,58 @@ async def refresh_token():
 
 
 @router.post("/logout", tags=["Authentication"])
-async def logout():
+async def logout(response: Response):
     """User logout endpoint."""
-    # TODO: Implement logout
-    raise HTTPException(status_code=501, detail="Logout not implemented yet")
+    try:
+        # Clear all authentication cookies
+        response.delete_cookie(
+            key="soleil_session",
+            path="/",
+            httponly=True,
+            samesite="lax",
+            secure=True
+        )
+        
+        response.delete_cookie(
+            key="soleil_refresh",
+            path="/",
+            httponly=True,
+            samesite="lax",
+            secure=True
+        )
+        
+        response.delete_cookie(
+            key="soleil_auth",
+            path="/",
+            httponly=False,
+            samesite="lax",
+            secure=True
+        )
+        
+        response.delete_cookie(
+            key="soleil_profile_complete",
+            path="/",
+            httponly=False,
+            samesite="lax",
+            secure=True
+        )
+        
+        return {
+            "status": "success",
+            "message": "Logged out successfully"
+        }
+        
+    except Exception as e:
+        # Even if there's an error, try to clear cookies
+        response.delete_cookie("soleil_session", path="/")
+        response.delete_cookie("soleil_refresh", path="/")
+        response.delete_cookie("soleil_auth", path="/")
+        response.delete_cookie("soleil_profile_complete", path="/")
+        
+        return {
+            "status": "success",
+            "message": "Logged out successfully"
+        }
 
 
 @router.post("/profile/complete", tags=["Authentication"])
