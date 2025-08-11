@@ -141,6 +141,56 @@ class SOLEilCoordinator:
         logger.info(f"📋 Created development task: {task_id} for PRP {prp_id}")
         return task_id
     
+    def create_profile_management_tasks(self) -> List[str]:
+        """Create tasks for profile redirect logic and management script."""
+        tasks = []
+        
+        # Task 1: Implement profile redirect logic
+        task_1 = {
+            "id": f"TASK-{self.task_counter + 1:03d}",
+            "type": "backend",
+            "prp_id": "profile_redirect_enhancement",
+            "description": "Implement profile redirect logic: redirect existing users to dashboard, new users to profile setup",
+            "priority": "high",
+            "status": "pending",
+            "created_at": datetime.now(),
+            "assigned_to": None,
+            "requirements": [
+                "Modify OAuth callback to check if user has existing profile",
+                "Redirect existing users to /dashboard",
+                "Redirect new users to /profile?new_user=true",
+                "Set appropriate cookies based on user status"
+            ]
+        }
+        self.task_counter += 1
+        self.tasks[task_1["id"]] = task_1
+        tasks.append(task_1["id"])
+        
+        # Task 2: Create profile management script
+        task_2 = {
+            "id": f"TASK-{self.task_counter + 1:03d}",
+            "type": "backend",
+            "prp_id": "profile_management_script",
+            "description": "Create backend script for easy profile registry management (add/remove profiles)",
+            "priority": "high",
+            "status": "pending",
+            "created_at": datetime.now(),
+            "assigned_to": None,
+            "requirements": [
+                "Create CLI script for profile management",
+                "Add command to remove specific user profiles",
+                "Add command to list all profiles",
+                "Add command to backup/restore profile registry",
+                "Ensure script is safe and has confirmation prompts"
+            ]
+        }
+        self.task_counter += 1
+        self.tasks[task_2["id"]] = task_2
+        tasks.append(task_2["id"])
+        
+        logger.info(f"📋 Created {len(tasks)} profile management tasks")
+        return tasks
+    
     def assign_task_to_best_agent(self, task_id: str) -> Optional[str]:
         """Assign a task to the best available agent."""
         if task_id not in self.tasks:
@@ -312,6 +362,9 @@ async def start_soleil_multi_agent_system():
             "Write comprehensive tests for offline chart functionality",
             "medium"
         )
+    
+    # Create profile management tasks
+    coordinator.create_profile_management_tasks()
     
     # Assign tasks to agents
     for task_id in coordinator.tasks:

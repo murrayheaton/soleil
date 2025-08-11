@@ -41,11 +41,11 @@ async def google_login():
 async def google_callback(code: str):
     """
     Handle Google OAuth2 callback for user authentication.
+    Redirects existing users to dashboard, new users to profile setup.
     """
     from fastapi import Response
     from fastapi.responses import RedirectResponse
     import jwt
-    import requests
     from datetime import datetime, timedelta
     
     try:
@@ -74,6 +74,20 @@ async def google_callback(code: str):
                 user_id = user_info.get('id', user_email)
                 user_name = user_info.get('name', user_email.split('@')[0])
                 
+                # Check if user already has a profile
+                from app.services.profile_service import profile_service
+                try:
+                    profile = await profile_service.get_or_create_profile(
+                        user_id=user_id,
+                        email=user_email,
+                        name=user_name
+                    )
+                    is_new_user = profile.get('is_new', True)
+                    logger.info(f"User {user_email} profile status: {'new' if is_new_user else 'existing'}")
+                except Exception as e:
+                    logger.warning(f"Could not check profile status for {user_email}: {e}")
+                    is_new_user = True
+                
                 # Create session token
                 JWT_SECRET = os.getenv('JWT_SECRET_KEY', 'your-secret-key-change-in-production')
                 JWT_ALGORITHM = "HS256"
@@ -100,10 +114,18 @@ async def google_callback(code: str):
                 }
                 refresh_token = jwt.encode(refresh_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
                 
-                # Create redirect response with cookies
+                # Determine redirect URL based on profile status
                 frontend_url = os.getenv('FRONTEND_URL', 'https://solepower.live')
+                if is_new_user:
+                    redirect_url = f"{frontend_url}/profile?auth=success&new_user=true"
+                    logger.info(f"Redirecting new user {user_email} to profile setup")
+                else:
+                    redirect_url = f"{frontend_url}/dashboard?auth=success"
+                    logger.info(f"Redirecting existing user {user_email} to dashboard")
+                
+                # Create redirect response with cookies
                 response = RedirectResponse(
-                    url=f"{frontend_url}/profile?auth=success&new_user=true",
+                    url=redirect_url,
                     status_code=302
                 )
                 
@@ -124,6 +146,23 @@ async def google_callback(code: str):
                     samesite="lax",
                     secure=True  # Set to True in production with HTTPS
                 )
+                
+                # Set profile complete cookie for existing users
+                if not is_new_user:
+                    response.set_cookie(
+                        key="soleil_profile_complete",
+                        value="true",
+                        max_age=86400 * 30,  # 30 days
+                        httponly=False,
+                        samesite="lax"
+                    )
+                    response.set_cookie(
+                        key="soleil_auth",
+                        value="true",
+                        max_age=86400,
+                        httponly=False,
+                        samesite="lax"
+                    )
                 
                 return response
             else:
