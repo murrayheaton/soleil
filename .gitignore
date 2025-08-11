@@ -31,3 +31,10 @@ wheels/
 .installed.cfg
 *.egg
 .DS_Store
+
+# Sensitive OAuth and user data files
+apps/backend/backend/google_token.json
+apps/backend/backend/user_profiles.json
+*.json
+.env.local
+.env.production
