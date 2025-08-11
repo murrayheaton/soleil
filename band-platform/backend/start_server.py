@@ -30,20 +30,15 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Simple app for demo purposes
-app = FastAPI(
-    title="Band Platform API",
-    description="A Progressive Web App for band management",
-    version="1.0.0"
-)
+# Import modules
+from modules.init_app import create_app
 
-# Register all modules with the API gateway (includes auth, user profile, etc.)
-try:
-    from modules.register_modules import register_all_modules
-    register_all_modules(app)
-    logger.info("All modules registered with API gateway")
-except Exception as e:
-    logger.warning(f"Could not register modules: {e}")
+# Create the FastAPI application
+app = create_app()
+
+# Remove duplicate module registration - now handled by init_app.py
+# from modules.register_modules import register_all_modules
+# register_all_modules(app)
 
 # CORS - Updated for production and local development
 cors_origins = os.getenv(
