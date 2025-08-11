@@ -6,7 +6,7 @@ import {
   Cog6ToothIcon
 } from '@heroicons/react/24/outline';
 import { useSearchParams } from 'next/navigation';
-import ProfileOnboarding from '@/components/ProfileOnboarding';
+import WelcomeScreen from '@/components/WelcomeScreen';
 
 interface UserProfile {
   email: string;
@@ -236,12 +236,8 @@ function ProfileContent() {
         <div className="max-w-4xl mx-auto">
           {/* Show onboarding for new users without a profile */}
           {isNewUser && !profile?.name ? (
-            <ProfileOnboarding 
-              initialData={googleUserData || undefined}
-              onComplete={() => {
-                setIsNewUser(false);
-                fetchProfile(); // Refresh profile data
-              }}
+            <WelcomeScreen 
+              userData={googleUserData || undefined}
             />
           ) : (
             /* Profile Card */
