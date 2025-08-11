@@ -31,7 +31,7 @@ export default function ProfileOnboarding({ initialData, onComplete }: ProfileOn
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/user/profile`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/profile/profile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -34,7 +34,7 @@ function ProfileContent() {
     setError(null);
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/user/profile`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/profile/profile`);
       const data = await response.json();
       
       // Profile API response received
@@ -116,7 +116,7 @@ function ProfileContent() {
 
   const updateProfile = async (updatedProfile: Partial<UserProfile>) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/user/profile`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/profile/profile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

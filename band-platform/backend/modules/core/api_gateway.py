@@ -120,9 +120,11 @@ class APIGateway:
             return
             
         # Add module prefix to avoid conflicts
-        # Special handling for auth module to use /api/auth instead of /api/modules/auth
+        # Special handling for auth and profile modules to use /api/auth and /api/profile
         if module.name == "auth":
             prefix = "/api/auth"
+        elif module.name == "profile":
+            prefix = "/api/profile"
         else:
             prefix = f"/api/modules/{module.name}"
         

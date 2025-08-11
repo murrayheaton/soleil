@@ -16,6 +16,7 @@ from .content import router as content_router, MODULE_NAME as CONTENT_MODULE, MO
 from .drive import router as drive_router, MODULE_NAME as DRIVE_MODULE, MODULE_VERSION as DRIVE_VERSION
 from .sync import router as sync_router, MODULE_NAME as SYNC_MODULE, MODULE_VERSION as SYNC_VERSION
 from .dashboard import router as dashboard_router, MODULE_NAME as DASHBOARD_MODULE, MODULE_VERSION as DASHBOARD_VERSION
+from .profile import router as profile_router, MODULE_NAME as PROFILE_MODULE, MODULE_VERSION as PROFILE_VERSION
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +47,16 @@ def register_all_modules(app: Optional[FastAPI] = None) -> None:
             version=AUTH_VERSION,
             description="Authentication and user management",
             dependencies=[],
+            metadata={"core": True}
+        )
+        
+        # Profile module - user profile management
+        gateway.register_module(
+            name=PROFILE_MODULE,
+            router=profile_router,
+            version=PROFILE_VERSION,
+            description="User profile management and preferences",
+            dependencies=[AUTH_MODULE],
             metadata={"core": True}
         )
         
