@@ -6,6 +6,7 @@ Allows admin to authenticate once, then all users benefit from the connection.
 from fastapi import APIRouter, HTTPException
 import logging
 import os
+import requests
 
 from app.services.google_drive_oauth import drive_oauth_service
 
