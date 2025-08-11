@@ -10,7 +10,7 @@ from typing import Optional
 
 from fastapi import FastAPI
 
-from .core.api_gateway import get_api_gateway
+from .core.api_gateway import get_api_gateway, reset_api_gateway
 from .auth import router as auth_router, MODULE_NAME as AUTH_MODULE, MODULE_VERSION as AUTH_VERSION
 from .content import router as content_router, MODULE_NAME as CONTENT_MODULE, MODULE_VERSION as CONTENT_VERSION
 from .drive import router as drive_router, MODULE_NAME as DRIVE_MODULE, MODULE_VERSION as DRIVE_VERSION
@@ -25,12 +25,13 @@ def register_all_modules(app: Optional[FastAPI] = None) -> None:
     """
     Register all modules with the API gateway.
     
-    This function ensures modules are registered in the correct order
-    based on their dependencies.
-    
     Args:
-        app: Optional FastAPI application instance
+        app: FastAPI application instance (optional)
     """
+    # Reset the API gateway to clear any existing module state
+    reset_api_gateway()
+    
+    # Get the API gateway instance
     gateway = get_api_gateway()
     
     if app:
