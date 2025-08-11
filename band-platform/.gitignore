@@ -2,3 +2,10 @@ band-platform/nginx/ssl/*.pem
 *.env.local
 .credentials_backup/
 oauth_credentials.enc
+
+# Sensitive OAuth and user data files
+apps/backend/backend/google_token.json
+apps/backend/backend/user_profiles.json
+*.json
+.env.local
+.env.production
