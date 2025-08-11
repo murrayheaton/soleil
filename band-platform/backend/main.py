@@ -5,10 +5,10 @@ Uses modular architecture with proper initialization
 """
 
 import uvicorn
-from modules.init_app import create_app
+from modules.init_app import create_modular_app
 
 # Create the FastAPI application using modular architecture
-app = create_app()
+app = create_modular_app()
 
 if __name__ == "__main__":
     uvicorn.run(
