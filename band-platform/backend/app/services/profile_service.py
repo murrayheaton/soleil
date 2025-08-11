@@ -133,24 +133,18 @@ class ProfileService:
                         profile['is_new'] = False
                         return profile
                     
-                    # Create new profile
-                    profile = {
+                    # Don't create profile automatically - let the frontend handle it
+                    # Return a minimal profile structure without saving
+                    logger.info(f"New user {email} - profile will be created during onboarding")
+                    return {
                         "id": user_id,
                         "email": email,
                         "name": name,
                         "instruments": [],
                         "ui_scale": "small",
-                        "created_at": datetime.utcnow().isoformat(),
-                        "updated_at": datetime.utcnow().isoformat(),
-                        "last_accessed": datetime.utcnow().isoformat(),
-                        "is_new": True
+                        "is_new": True,
+                        "is_transient": True  # Mark as temporary until saved
                     }
-                    
-                    profiles[user_id] = profile
-                    await self._save_profiles(profiles)
-                    
-                    logger.info(f"Created new profile for {email}")
-                    return profile
                     
             except Exception as e:
                 logger.error(f"Profile operation failed (attempt {attempt + 1}): {e}")
@@ -170,6 +164,29 @@ class ProfileService:
                 
                 # Exponential backoff
                 await asyncio.sleep(2 ** attempt)
+
+    async def is_new_user(self, user_id: str) -> bool:
+        """Check if a user is truly new (no profile or incomplete profile)."""
+        try:
+            async with self._lock:
+                profiles = await self._load_profiles()
+                
+                if user_id not in profiles:
+                    return True
+                
+                profile = profiles[user_id]
+                
+                # Check if profile has essential data
+                has_instruments = profile.get('instruments') and len(profile.get('instruments', [])) > 0
+                has_name = profile.get('name') and profile.get('name').strip()
+                has_email = profile.get('email') and profile.get('email').strip()
+                
+                # User is new if missing essential profile data
+                return not (has_instruments and has_name and has_email)
+                
+        except Exception as e:
+            logger.error(f"Failed to check if user {user_id} is new: {e}")
+            return True  # Assume new user on error
     
     async def update_profile(self, user_id: str, updates: Dict) -> Optional[Dict]:
         """Update an existing profile."""

@@ -78,13 +78,20 @@ async def google_callback(code: str):
                 # Check if user already has a profile
                 from app.services.profile_service import profile_service
                 try:
-                    profile = await profile_service.get_or_create_profile(
-                        user_id=user_id,
-                        email=user_email,
-                        name=user_name
-                    )
-                    is_new_user = profile.get('is_new', True)
-                    logger.info(f"User {user_email} profile status: {'new' if is_new_user else 'existing'}")
+                    # First check if user is truly new
+                    is_new_user = await profile_service.is_new_user(user_id)
+                    
+                    if is_new_user:
+                        logger.info(f"User {user_email} is new - will redirect to profile setup")
+                    else:
+                        # Get existing profile to update last accessed
+                        profile = await profile_service.get_or_create_profile(
+                            user_id=user_id,
+                            email=user_email,
+                            name=user_name
+                        )
+                        logger.info(f"User {user_email} has existing profile - redirecting to dashboard")
+                        
                 except Exception as e:
                     logger.warning(f"Could not check profile status for {user_email}: {e}")
                     is_new_user = True
