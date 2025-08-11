@@ -116,21 +116,45 @@ export default function Layout({ children }: LayoutProps) {
 
   // Handle sign out
   const handleSignOut = async () => {
+    console.log('🔄 Sign out button clicked! Starting logout process...');
+    
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live/api'}/auth/logout`, {
+      console.log('📡 Calling logout API...');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       });
       
+      console.log('📡 Logout API response:', response.status, response.statusText);
+      
       if (response.ok) {
-        // Clear local storage and redirect to login
+        console.log('✅ Logout API successful, clearing local data...');
+        // Clear local storage and session storage
         localStorage.clear();
-        window.location.href = '/';
+        sessionStorage.clear();
+        
+        // Clear any remaining cookies (frontend fallback)
+        document.cookie = 'soleil_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        document.cookie = 'soleil_refresh=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        document.cookie = 'soleil_auth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        document.cookie = 'soleil_profile_complete=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        
+        console.log('🧹 Local data cleared, redirecting to login...');
+        // Redirect to login page
+        window.location.href = '/login';
+      } else {
+        // If logout fails, still clear local data and redirect
+        console.warn('⚠️ Logout API failed, but clearing local data');
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = '/login';
       }
-    } catch {
+    } catch (error) {
       // Fallback: clear storage and redirect anyway
+      console.error('❌ Logout error:', error);
       localStorage.clear();
-      window.location.href = '/';
+      sessionStorage.clear();
+      window.location.href = '/login';
     }
   };
 
@@ -170,7 +194,10 @@ export default function Layout({ children }: LayoutProps) {
             
             {/* Sign Out Button */}
             <button 
-              onClick={handleSignOut}
+              onClick={(e) => {
+                console.log('🖱️ Sign out button clicked!', e);
+                handleSignOut();
+              }}
               className="sign-out-btn hidden md:block"
             >
               Sign Out
@@ -212,7 +239,10 @@ export default function Layout({ children }: LayoutProps) {
                 );
               })}
               <button 
-                onClick={handleSignOut}
+                onClick={(e) => {
+                  console.log('🖱️ Mobile sign out button clicked!', e);
+                  handleSignOut();
+                }}
                 className="mobile-nav-link text-left w-full"
               >
                 Sign Out
