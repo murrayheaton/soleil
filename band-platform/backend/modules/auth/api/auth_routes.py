@@ -5,7 +5,8 @@ This module provides authentication endpoints including JWT token management
 and Google OAuth integration following the PRP requirements.
 """
 
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, HTTPException, Response, Request
+from datetime import datetime
 
 router = APIRouter()
 
@@ -100,6 +101,47 @@ async def logout(response: Response):
             "status": "success",
             "message": "Logged out successfully"
         }
+
+
+@router.get("/validate", tags=["Authentication"])
+async def validate_auth(request: Request):
+    """Validate user authentication status."""
+    try:
+        # Check for session token
+        session_token = request.cookies.get("soleil_session")
+        if not session_token:
+            raise HTTPException(status_code=401, detail="Not authenticated")
+        
+        # Import JWT handling
+        import jwt
+        import os
+        
+        JWT_SECRET = os.getenv('JWT_SECRET_KEY', 'your-secret-key-change-in-production')
+        JWT_ALGORITHM = "HS256"
+        
+        try:
+            # Decode and validate token
+            payload = jwt.decode(session_token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+            user_info = payload.get("user", {})
+            
+            # Check if token is expired
+            exp_timestamp = payload.get("exp")
+            if exp_timestamp and datetime.now().timestamp() > exp_timestamp:
+                raise HTTPException(status_code=401, detail="Token expired")
+            
+            return {
+                "status": "success",
+                "authenticated": True,
+                "user": user_info
+            }
+            
+        except jwt.InvalidTokenError:
+            raise HTTPException(status_code=401, detail="Invalid token")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Validation error: {str(e)}")
 
 
 @router.post("/profile/complete", tags=["Authentication"])
