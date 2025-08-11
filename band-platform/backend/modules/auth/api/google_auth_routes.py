@@ -5,6 +5,7 @@ Allows admin to authenticate once, then all users benefit from the connection.
 
 from fastapi import APIRouter, HTTPException
 import logging
+import os
 
 from app.services.google_drive_oauth import drive_oauth_service
 
@@ -63,7 +64,7 @@ async def google_callback(code: str):
         refresh_token = jwt.encode(refresh_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
         
         # Create redirect response with cookies
-        frontend_url = "http://localhost:3000"  # Should be from env
+        frontend_url = os.getenv('FRONTEND_URL', 'https://solepower.live')
         response = RedirectResponse(
             url=f"{frontend_url}/profile?auth=success&new_user=true",
             status_code=302

@@ -120,7 +120,12 @@ class APIGateway:
             return
             
         # Add module prefix to avoid conflicts
-        prefix = f"/api/modules/{module.name}"
+        # Special handling for auth module to use /api/auth instead of /api/modules/auth
+        if module.name == "auth":
+            prefix = "/api/auth"
+        else:
+            prefix = f"/api/modules/{module.name}"
+        
         self._app.include_router(
             module.router,
             prefix=prefix,
