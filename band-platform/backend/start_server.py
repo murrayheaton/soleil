@@ -61,6 +61,14 @@ try:
 except Exception as e:
     logger.warning(f"Could not register user profile routes: {e}")
 
+# Register all modules with the API gateway
+try:
+    from modules.register_modules import register_all_modules
+    register_all_modules(app)
+    logger.info("All modules registered with API gateway")
+except Exception as e:
+    logger.warning(f"Could not register modules: {e}")
+
 # CORS - Updated for production and local development
 cors_origins = os.getenv(
     'CORS_ORIGINS',

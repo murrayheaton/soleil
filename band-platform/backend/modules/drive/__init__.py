@@ -4,6 +4,10 @@ Drive Module
 Manages Google Drive integration for the band platform.
 """
 
+# Module metadata
+MODULE_NAME = "drive"
+MODULE_VERSION = "1.0.0"
+
 # Core services
 from .services.drive_client import GoogleDriveService, DriveAPIError
 from .services.drive_auth import GoogleDriveOAuthService, drive_oauth_service
@@ -16,6 +20,9 @@ from .utils.drive_helpers import GoogleDriveAuth, test_drive_connection
 # API routes
 from .api import drive_routes
 
+# Router alias for API gateway registration
+router = drive_routes
+
 # Models
 from .models import (
     DriveFileType,
@@ -26,6 +33,11 @@ from .models import (
 )
 
 __all__ = [
+    # Module metadata
+    "MODULE_NAME",
+    "MODULE_VERSION",
+    # API gateway
+    "router",
     # Services
     "GoogleDriveService",
     "GoogleDriveOAuthService",

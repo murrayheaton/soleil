@@ -4,6 +4,10 @@ Sync Module
 Manages real-time synchronization and WebSocket connections for the band platform.
 """
 
+# Module metadata
+MODULE_NAME = "sync"
+MODULE_VERSION = "1.0.0"
+
 # Core services
 from .services.sync_engine import (
     SyncEngine,
@@ -47,7 +51,15 @@ from .models.sync_state import (
 from .api.sync_routes import router as sync_routes
 from .api.websocket import router as websocket_routes, manager as websocket_manager
 
+# Router alias for API gateway registration
+router = sync_routes
+
 __all__ = [
+    # Module metadata
+    "MODULE_NAME",
+    "MODULE_VERSION",
+    # API gateway
+    "router",
     # Services
     "SyncEngine",
     "SyncEvent",

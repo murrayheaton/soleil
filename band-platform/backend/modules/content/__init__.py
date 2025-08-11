@@ -5,6 +5,13 @@ Handles file parsing, organization, and instrument-based filtering for the band 
 """
 from .api import router as content_router
 from .services import ContentParser, InstrumentFilter, parse_filename, get_keys_for_instruments
+
+# Module metadata
+MODULE_NAME = "content"
+MODULE_VERSION = "1.0.0"
+
+# Alias for compatibility
+router = content_router
 from .models import (
     Chart, Audio, Setlist, UserFolder,
     ContentType, ChartType, SetlistStatus,
@@ -20,6 +27,10 @@ instrument_filter = InstrumentFilter()
 __all__ = [
     # Router
     "content_router",
+    "router",
+    # Module metadata
+    "MODULE_NAME",
+    "MODULE_VERSION",
     # Services
     "ContentParser",
     # "FolderOrganizer", 

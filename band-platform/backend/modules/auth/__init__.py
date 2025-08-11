@@ -11,9 +11,20 @@ from .exceptions import AuthenticationError, AuthorizationError, TokenError
 # Create module-level service instance
 auth_service = AuthService()
 
+# Module metadata
+MODULE_NAME = "auth"
+MODULE_VERSION = "1.0.0"
+
+# Alias for compatibility
+router = auth_router
+
 __all__ = [
     # Router
     "auth_router",
+    "router",
+    # Module metadata
+    "MODULE_NAME",
+    "MODULE_VERSION",
     # Services
     "AuthService",
     "GoogleAuthService", 
