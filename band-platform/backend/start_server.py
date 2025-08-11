@@ -347,233 +347,33 @@ def get_user_profile(email):
     
     return profiles[email]
 
-@app.get("/api/user/profile")
-@app.get("/api/users/profile")  # Alternative endpoint for compatibility
-async def get_user_profile_endpoint(request: Request):
-    """Get current user profile with proper error handling."""
-    start_time = datetime.now()
-    session_id = id(request)
-    
-    logger.info(f"Profile fetch started - Session: {session_id}")
-    
-    try:
-        # Check if we have a token with user email
-        if not os.path.exists('google_token.json'):
-            logger.warning("Profile fetch failed: Not authenticated")
-            return JSONResponse(
-                status_code=401,
-                content={"error": "Not authenticated"}
-            )
-        
-        # Load token and get user info
-        import json
-        with open('google_token.json', 'r') as f:
-            tokens = json.load(f)
-        
-        user_email = tokens.get('user_email')
-        if not user_email:
-            logger.error("Profile fetch failed: No user email in token")
-            return JSONResponse(
-                status_code=404,
-                content={"error": "Profile not found in session"}
-            )
-        
-        # Get profile using the profile service
-        from app.services.profile_service import profile_service
-        
-        # For existing users, try to get their profile or create with defaults
-        user_id = tokens.get('user_id', user_email)  # Fallback to email as ID
-        user_name = tokens.get('user_name', user_email.split('@')[0])
-        
-        fresh_profile = await profile_service.get_or_create_profile(
-            user_id=user_id,
-            email=user_email,
-            name=user_name
-        )
-        
-        # Add legacy fields for compatibility
-        if 'instrument' not in fresh_profile:
-            # Apply legacy defaults
-            if user_email == 'murrayrheaton@gmail.com':
-                fresh_profile.update({
-                    "instrument": "alto_sax",
-                    "transposition": "E♭",
-                    "display_name": "Alto Sax"
-                })
-            else:
-                fresh_profile.update({
-                    "instrument": "trumpet", 
-                    "transposition": "B♭",
-                    "display_name": "Trumpet"
-                })
-        
-        # Convert to consistent API format
-        legacy_profile = {
-            "id": fresh_profile.get("id", user_id),
-            "email": fresh_profile["email"],
-            "name": fresh_profile["name"],
-            "instrument": fresh_profile.get("instrument", "alto_sax"),
-            "transposition": fresh_profile.get("transposition", "E♭"),
-            "display_name": fresh_profile.get("display_name", "Alto Sax"),
-            "created_at": fresh_profile.get("created_at"),
-            "updated_at": fresh_profile.get("updated_at"),
-            "is_transient": fresh_profile.get("is_transient", False)
-        }
-        
-        duration = (datetime.now() - start_time).total_seconds()
-        logger.info(f"Profile fetch successful in {duration:.2f}s for {user_email}")
-        
-        return JSONResponse(content=legacy_profile)
-        
-    except Exception as e:
-        duration = (datetime.now() - start_time).total_seconds()
-        logger.error(f"Profile fetch error after {duration:.2f}s: {e}")
-        logger.error(f"Traceback: {traceback.format_exc()}")
-        return JSONResponse(
-            status_code=500,
-            content={"error": "Failed to load profile"}
-        )
+# Remove hardcoded auth and profile routes that conflict with modular system
+# These are now handled by the auth and profile modules
 
-@app.post("/api/user/profile")
-async def update_user_profile_endpoint(request: Request):
-    """Update user profile with proper error handling."""
-    start_time = datetime.now()
-    session_id = id(request)
-    
-    logger.info(f"Profile update started - Session: {session_id}")
-    
-    try:
-        # Check if we have a token with user email
-        if not os.path.exists('google_token.json'):
-            logger.warning("Profile update failed: Not authenticated")
-            return JSONResponse(
-                status_code=401,
-                content={"error": "Not authenticated"}
-            )
-        
-        # Get request data
-        request_data = await request.json()
-        
-        # Load token and get user info
-        import json
-        with open('google_token.json', 'r') as f:
-            tokens = json.load(f)
-        
-        user_email = tokens.get('user_email')
-        if not user_email:
-            logger.error("Profile update failed: No user email in token")
-            return JSONResponse(
-                status_code=404,
-                content={"error": "Profile not found in session"}
-            )
-        
-        # Use the profile service for updates
-        from app.services.profile_service import profile_service
-        
-        user_id = tokens.get('user_id', user_email)
-        
-        # Prepare updates
-        allowed_fields = ['name', 'instrument', 'transposition', 'display_name']
-        updates = {}
-        for field in allowed_fields:
-            if field in request_data:
-                updates[field] = request_data[field]
-        
-        # Update profile
-        updated_profile = await profile_service.update_profile(user_id, updates)
-        
-        if updated_profile:
-            # Convert to legacy format
-            legacy_profile = {
-                "email": updated_profile["email"],
-                "name": updated_profile["name"],
-                "instrument": updated_profile.get("instrument", "alto_sax"),
-                "transposition": updated_profile.get("transposition", "E♭"),
-                "display_name": updated_profile.get("display_name", "Alto Sax")
-            }
-            
-            duration = (datetime.now() - start_time).total_seconds()
-            logger.info(f"Profile update successful in {duration:.2f}s for {user_email}")
-            
-            return JSONResponse(content={"status": "success", "profile": legacy_profile})
-        else:
-            logger.error(f"Profile update failed: Profile not found for {user_id}")
-            return JSONResponse(
-                status_code=404,
-                content={"error": "Profile not found"}
-            )
-        
-    except Exception as e:
-        duration = (datetime.now() - start_time).total_seconds()
-        logger.error(f"Profile update error after {duration:.2f}s: {e}")
-        logger.error(f"Traceback: {traceback.format_exc()}")
-        return JSONResponse(
-            status_code=500,
-            content={"error": "Failed to update profile"}
-        )
+# @app.get("/api/user/profile")
+# @app.get("/api/users/profile")  # Alternative endpoint for compatibility
+# async def get_user_profile_endpoint(request: Request):
+#     """Get user profile endpoint."""
+#     # REMOVED - Now handled by profile module
+#     pass
 
-@app.post("/api/auth/logout")
-async def logout(request: Request):
-    """Logout user and clear session."""
-    try:
-        # Remove the Google token file to log out the user
-        if os.path.exists('google_token.json'):
-            os.remove('google_token.json')
-            logger.info("User logged out - token file removed")
-        
-        return JSONResponse(content={"status": "logged out"})
-    except Exception as e:
-        logger.error(f"Logout error: {e}")
-        return JSONResponse(content={"status": "error", "message": "Failed to logout"})
+# @app.post("/api/user/profile")
+# async def update_user_profile_endpoint(request: Request):
+#     """Update user profile endpoint."""
+#     # REMOVED - Now handled by profile module
+#     pass
 
-# Add automatic token refresh to Google API calls
-async def make_google_api_request(endpoint: str, params: Dict = None):
-    """Make authenticated request to Google API with retry."""
-    access_token = token_manager.get_access_token()
-    if not access_token:
-        raise HTTPException(status_code=401, detail="No valid access token")
-    
-    headers = {'Authorization': f'Bearer {access_token}'}
-    
-    import requests
-    for attempt in range(2):  # Try twice in case of token expiry
-        response = requests.get(endpoint, headers=headers, params=params)
-        
-        if response.status_code == 401 and attempt == 0:
-            # Token might be expired, try refreshing
-            access_token = token_manager._refresh_token()
-            if access_token:
-                headers['Authorization'] = f'Bearer {access_token}'
-                continue
-        
-        return response
-    
-    raise HTTPException(status_code=401, detail="Failed to authenticate with Google")
+# @app.post("/api/auth/logout")
+# async def logout(request: Request):
+#     """Logout endpoint."""
+#     # REMOVED - Now handled by auth module
+#     pass
 
-@app.get("/api/auth/session")
-async def get_session():
-    """Get current session information."""
-    try:
-        if not os.path.exists('google_token.json'):
-            return JSONResponse(
-                status_code=401,
-                content={"error": "Not authenticated"}
-            )
-        
-        with open('google_token.json', 'r') as f:
-            tokens = json.load(f)
-        
-        return {
-            "email": tokens.get('user_email'),
-            "name": tokens.get('user_name'),
-            "picture": tokens.get('picture', '')
-        }
-    except Exception as e:
-        logger.error(f"Session retrieval error: {str(e)}")
-        return JSONResponse(
-            status_code=500,
-            content={"error": "Failed to retrieve session"}
-        )
+# @app.get("/api/auth/session")
+# async def get_session():
+#     """Get session information."""
+#     # REMOVED - Now handled by auth module
+#     pass
 
 # OAuth routes moved to modular auth system
 # Removed duplicate /api/auth/google/login and /api/auth/google/callback routes
