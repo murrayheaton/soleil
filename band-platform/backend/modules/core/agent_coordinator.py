@@ -13,7 +13,7 @@ from pathlib import Path
 
 from .event_bus import EventBus
 from .api_gateway import APIGateway
-from .events import Event
+from .event_bus import Event
 
 logger = logging.getLogger(__name__)
 

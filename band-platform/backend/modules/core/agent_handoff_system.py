@@ -3,7 +3,7 @@ Agent Handoff System
 Manages seamless task transitions between agents
 """
 
-from typing import Dict, List, Optional, Any, Callable
+from typing import Dict, List, Optional, Any, Callable, Tuple
 from datetime import datetime, timedelta
 from dataclasses import dataclass, field
 from enum import Enum
