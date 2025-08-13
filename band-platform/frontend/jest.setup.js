@@ -39,8 +39,38 @@ jest.mock('react-pdf', () => ({
 }))
 
 // Mock IndexedDB
+const mockIDBRequest = {
+  result: null,
+  error: null,
+  onsuccess: null,
+  onerror: null,
+  onupgradeneeded: null,
+}
+
+const mockObjectStore = {
+  get: jest.fn().mockReturnValue(mockIDBRequest),
+  put: jest.fn().mockReturnValue(mockIDBRequest),
+  delete: jest.fn().mockReturnValue(mockIDBRequest),
+  clear: jest.fn().mockReturnValue(mockIDBRequest),
+  getAll: jest.fn().mockReturnValue(mockIDBRequest),
+  createIndex: jest.fn(),
+}
+
+const mockTransaction = {
+  objectStore: jest.fn().mockReturnValue(mockObjectStore),
+}
+
+const mockDB = {
+  transaction: jest.fn().mockReturnValue(mockTransaction),
+  objectStoreNames: { contains: jest.fn().mockReturnValue(false) },
+  createObjectStore: jest.fn().mockReturnValue(mockObjectStore),
+}
+
 global.indexedDB = {
-  open: jest.fn(),
+  open: jest.fn().mockReturnValue({
+    ...mockIDBRequest,
+    result: mockDB,
+  }),
   deleteDatabase: jest.fn(),
 }
 

@@ -13,7 +13,7 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { offlineStorage } from '@/lib/database';
-import { apiService } from '@/lib/api';
+import { apiService, AuthenticationError } from '@/lib/api';
 import type { Chart } from '@/lib/api';
 
 // Configure PDF.js worker
@@ -33,6 +33,8 @@ export default function ChartViewer({ chart, onClose }: ChartViewerProps) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isOffline, setIsOffline] = useState<boolean>(false);
+  const [needsAuth, setNeedsAuth] = useState<boolean>(false);
+  const [authUrl, setAuthUrl] = useState<string | null>(null);
   
   const containerRef = useRef<HTMLDivElement>(null);
   const touchStartRef = useRef<{ x: number; y: number; distance: number } | null>(null);
@@ -92,7 +94,24 @@ export default function ChartViewer({ chart, onClose }: ChartViewerProps) {
         }
       } catch (err) {
         console.error('Failed to load PDF:', err);
-        setError('Failed to load chart. Please try again.');
+        
+        if (err instanceof AuthenticationError) {
+          setNeedsAuth(true);
+          setError('Google Drive authentication required to access charts.');
+          
+          // Try to get auth URL
+          try {
+            const authUrlResponse = await apiService.getAuthUrlOnError();
+            setAuthUrl(authUrlResponse);
+          } catch (authError) {
+            console.error('Failed to get auth URL:', authError);
+          }
+        } else if (apiService.isAuthError(err)) {
+          setNeedsAuth(true);
+          setError('Google Drive authentication required to access charts.');
+        } else {
+          setError('Failed to load chart. Please try again.');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -236,12 +255,27 @@ export default function ChartViewer({ chart, onClose }: ChartViewerProps) {
     return (
       <div className="flex flex-col items-center justify-center h-96 text-center">
         <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
-        <button
-          onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Try Again
-        </button>
+        <div className="flex space-x-3">
+          {needsAuth && authUrl ? (
+            <button
+              onClick={() => window.open(authUrl, '_blank')}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              Authenticate Google Drive
+            </button>
+          ) : null}
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+        {needsAuth && (
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-3">
+            After authenticating, please refresh this page to load the chart.
+          </p>
+        )}
       </div>
     );
   }

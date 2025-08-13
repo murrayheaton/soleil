@@ -4,7 +4,8 @@ Content Module
 Handles file parsing, organization, and instrument-based filtering for the band platform.
 """
 from .api import router as content_router
-from .services import ContentParser, InstrumentFilter, parse_filename, get_keys_for_instruments
+from .services import ChartService
+from .services.soleil_content_parser import SOLEILContentParser, parse_filename, get_instrument_key, is_chart_accessible_by_user
 
 # Module metadata
 MODULE_NAME = "content"
@@ -13,16 +14,12 @@ MODULE_VERSION = "1.0.0"
 # Alias for compatibility
 router = content_router
 from .models import (
-    Chart, Audio, Setlist, UserFolder,
-    ContentType, ChartType, SetlistStatus,
-    ChartSchema, AudioSchema, SetlistSchema, UserFolderSchema
+    Chart, Audio, Setlist
 )
 
 # Create module-level service instances
-content_parser = ContentParser()
-# TODO: Re-enable when auth module is available
-# folder_organizer = FolderOrganizer()
-instrument_filter = InstrumentFilter()
+soleil_parser = SOLEILContentParser()
+chart_service = ChartService()
 
 __all__ = [
     # Router
@@ -32,27 +29,16 @@ __all__ = [
     "MODULE_NAME",
     "MODULE_VERSION",
     # Services
-    "ContentParser",
-    # "FolderOrganizer", 
-    "InstrumentFilter",
-    "content_parser",
-    # "folder_organizer",
-    "instrument_filter",
+    "SOLEILContentParser",
+    "ChartService",
+    "soleil_parser",
+    "chart_service",
     # Utility functions
     "parse_filename",
-    "get_keys_for_instruments",
+    "get_instrument_key",
+    "is_chart_accessible_by_user",
     # Models
     "Chart",
     "Audio",
     "Setlist",
-    "UserFolder",
-    # Enums
-    "ContentType",
-    "ChartType", 
-    "SetlistStatus",
-    # Schemas
-    "ChartSchema",
-    "AudioSchema",
-    "SetlistSchema",
-    "UserFolderSchema",
 ]

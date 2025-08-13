@@ -33,11 +33,17 @@ describe('ChartViewer', () => {
     // Mock successful API responses
     const mockApiService = require('@/lib/api').apiService
     mockApiService.downloadChart = jest.fn().mockResolvedValue(new Blob(['pdf content'], { type: 'application/pdf' }))
+    mockApiService.isAuthError = jest.fn().mockReturnValue(false)
+    mockApiService.getAuthUrlOnError = jest.fn().mockResolvedValue('')
     
     // Mock offline storage
     const mockOfflineStorage = require('@/lib/database').offlineStorage
     mockOfflineStorage.getChart = jest.fn().mockResolvedValue(null)
     mockOfflineStorage.storeChart = jest.fn().mockResolvedValue(undefined)
+    
+    // Mock console.error to avoid noise in tests
+    jest.spyOn(console, 'error').mockImplementation(() => {})
+    jest.spyOn(console, 'warn').mockImplementation(() => {})
   })
 
   afterEach(() => {
@@ -55,7 +61,10 @@ describe('ChartViewer', () => {
   it('displays loading state initially', () => {
     render(<ChartViewer chart={mockChart} onClose={mockOnClose} />)
     
-    expect(screen.getByRole('generic')).toHaveClass('animate-spin')
+    // Check for loading spinner
+    const spinners = screen.getAllByRole('generic')
+    const loadingSpinner = spinners.find(el => el.classList.contains('animate-spin'))
+    expect(loadingSpinner).toBeInTheDocument()
   })
 
   it('shows PDF document after successful load', async () => {
