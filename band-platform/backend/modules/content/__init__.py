@@ -19,7 +19,7 @@ from .models import (
 
 # Create module-level service instances
 soleil_parser = SOLEILContentParser()
-chart_service = ChartService()
+# chart_service = ChartService()  # Temporarily disabled due to import issues
 
 __all__ = [
     # Router

@@ -18,8 +18,9 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
-from app.services.google_drive_oauth import drive_oauth_service
-from app.services.google_drive import DriveAPIError, AuthenticationError
+from app.services.google_drive import GoogleDriveService, DriveAPIError, AuthenticationError
+# Remove the broken import - we'll handle this differently
+# from app.services.google_drive_oauth import drive_oauth_service
 # from ..utils.auth import get_current_user  # TODO: Implement auth
 
 logger = logging.getLogger(__name__)
@@ -213,7 +214,7 @@ async def get_setlist(setlist_id: int):
 async def get_google_auth_url():
     """Get Google OAuth authorization URL for Drive access."""
     try:
-        auth_url = await drive_oauth_service.get_auth_url()
+        auth_url = await GoogleDriveService.get_auth_url()
         return {"auth_url": auth_url, "message": "Visit this URL to authorize Google Drive access"}
     except Exception as e:
         logger.error(f"Failed to get Google auth URL: {e}")
@@ -224,7 +225,7 @@ async def get_google_auth_url():
 async def handle_google_callback(authorization_code: str):
     """Handle Google OAuth callback with authorization code."""
     try:
-        success = await drive_oauth_service.handle_callback(authorization_code)
+        success = await GoogleDriveService.handle_callback(authorization_code)
         if success:
             return {"message": "Google Drive authentication successful"}
         else:
@@ -238,7 +239,7 @@ async def handle_google_callback(authorization_code: str):
 async def check_google_auth_status():
     """Check if Google Drive is authenticated and accessible."""
     try:
-        authenticated = await drive_oauth_service.authenticate()
+        authenticated = await GoogleDriveService.authenticate()
         if authenticated:
             return {
                 "authenticated": True, 
@@ -248,7 +249,7 @@ async def check_google_auth_status():
             return {
                 "authenticated": False, 
                 "message": "Google Drive authentication required",
-                "auth_url": await drive_oauth_service.get_auth_url()
+                "auth_url": await GoogleDriveService.get_auth_url()
             }
     except Exception as e:
         logger.error(f"Failed to check Google auth status: {e}")
