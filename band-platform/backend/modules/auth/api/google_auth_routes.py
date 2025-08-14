@@ -126,11 +126,11 @@ async def google_callback(code: str):
                 # Determine redirect URL based on profile status
                 frontend_url = os.getenv('FRONTEND_URL', 'https://solepower.live')
                 if is_new_user:
-                    redirect_url = f"{frontend_url}/profile?auth=success&new_user=true"
-                    logger.info(f"Redirecting new user {user_email} to profile setup")
+                    redirect_url = f"{frontend_url}/login?auth=success&new_user=true"
+                    logger.info(f"Redirecting new user {user_email} to login for profile setup")
                 else:
-                    redirect_url = f"{frontend_url}/dashboard?auth=success"
-                    logger.info(f"Redirecting existing user {user_email} to dashboard")
+                    redirect_url = f"{frontend_url}/login?auth=success"
+                    logger.info(f"Redirecting existing user {user_email} to login for repertoire")
                 
                 # Create redirect response with cookies
                 response = RedirectResponse(

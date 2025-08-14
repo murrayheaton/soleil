@@ -92,7 +92,7 @@ export default function WelcomeScreen({ userData }: WelcomeScreenProps) {
         document.cookie = 'soleil_profile_complete=true; path=/; max-age=86400';
         document.cookie = 'soleil_auth=true; path=/; max-age=86400';
         
-        // Redirect to repertoire page instead of dashboard
+        // Redirect to repertoire page after profile setup
         router.push('/repertoire');
       } else {
         const errorText = await response.text();

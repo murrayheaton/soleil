@@ -14,7 +14,15 @@ export default function LoginPage() {
     const messageParam = urlParams.get('message');
     
     if (authParam === 'success') {
-      window.location.href = '/profile?auth=success';
+      // Check if it's a new user who needs profile setup
+      const newUserParam = urlParams.get('new_user');
+      if (newUserParam === 'true') {
+        // New user - redirect to profile for instrument selection
+        window.location.href = '/profile?auth=success&new_user=true';
+      } else {
+        // Existing user - go directly to repertoire
+        window.location.href = '/repertoire';
+      }
     } else if (authParam === 'error') {
       setError(decodeURIComponent(messageParam || 'Authentication failed'));
     } else if (authParam === 'unauthorized') {

@@ -120,7 +120,8 @@ export default function Layout({ children }: LayoutProps) {
     
     try {
       console.log('📡 Calling logout API...');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/auth/logout`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live/api';
+      const response = await fetch(`${apiUrl}/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       });
