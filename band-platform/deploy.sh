@@ -64,10 +64,14 @@ echo -e "${GREEN}✓ Nginx configuration updated${NC}"
 
 # Create and update environment files with domain
 echo -e "${YELLOW}🔧 Creating and updating environment files...${NC}"
-cp backend/.env.production.template backend/.env.production
-cp frontend/.env.production.template frontend/.env.production
-sed -i.bak "s/YOUR_DOMAIN.com/$DOMAIN/g" backend/.env.production
-sed -i.bak "s/YOUR_DOMAIN.com/$DOMAIN/g" frontend/.env.production
+if [ -f backend/.env.production.template ]; then
+    cp backend/.env.production.template backend/.env.production
+    sed -i.bak "s/YOUR_DOMAIN.com/$DOMAIN/g" backend/.env.production
+fi
+if [ -f frontend/.env.production.template ]; then
+    cp frontend/.env.production.template frontend/.env.production
+    sed -i.bak "s/YOUR_DOMAIN.com/$DOMAIN/g" frontend/.env.production
+fi
 echo -e "${GREEN}✓ Environment files created and updated${NC}"
 
 # OAuth Credentials Setup - Check for persistent credentials first
