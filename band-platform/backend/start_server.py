@@ -41,6 +41,7 @@ app = create_modular_app()
 # register_all_modules(app)
 
 # CORS - Updated for production and local development
+# Localhost is included to support local development while backend is deployed
 cors_origins = os.getenv(
     'CORS_ORIGINS',
     '["https://solepower.live", "https://www.solepower.live", "http://localhost", "http://localhost:3000", "http://localhost:8000"]'
