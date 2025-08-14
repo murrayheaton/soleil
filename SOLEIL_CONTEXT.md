@@ -148,7 +148,7 @@ A web and mobile platform for band/gig management that serves as a curated wrapp
 
 **Key Technical Requirements:**
 - Google Workspace integration (Drive for files, Sheets for setlists/data, Calendar for schedule)
-- Intelligent file tagging system based on naming conventions (e.g., "Song Title - Bb.pdf")
+- Intelligent file tagging system based on naming conventions (e.g., "SongName_Bb.pdf")
 - Real-time sync from Google sources to app database
 - Role-based access control with instrument-to-transposition mapping
 - PWA for cross-platform compatibility
@@ -166,13 +166,13 @@ Since this is a new project, we'll use the template's existing examples for patt
 ```
 Band Google Drive/
 ├── Charts/
-│   ├── All of Me - Bb.pdf
-│   ├── All of Me - Eb.pdf
-│   ├── All of Me - C.pdf
-│   └── Spain - Rhythm.pdf
+│   ├── AllOfMe_Bb.pdf
+│   ├── AllOfMe_Eb.pdf
+│   ├── AllOfMe_Concert.pdf
+│   └── Spain_Chords.pdf
 ├── Audio References/
-│   ├── All of Me - Reference.mp3
-│   └── Spain - Reference.mp3
+│   ├── AllOfMe_Reference.mp3
+│   └── Spain_Reference.mp3
 ├── Setlists/ (Google Sheets)
 │   └── 2024 Gigs Setlists
 └── Gig Info/ (Google Sheets)

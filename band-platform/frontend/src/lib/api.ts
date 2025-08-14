@@ -143,17 +143,17 @@ class APIService {
     if (options.offset) params.append('offset', options.offset.toString());
     
     const query = params.toString();
-    const endpoint = `/charts${query ? `?${query}` : ''}`;
+    const endpoint = `/modules/content/charts${query ? `?${query}` : ''}`;
     
     return this.request<ChartListResponse>(endpoint);
   }
 
   async getChart(chartId: string): Promise<Chart> {
-    return this.request<Chart>(`/charts/${chartId}`);
+    return this.request<Chart>(`/modules/content/charts/${chartId}`);
   }
 
   async downloadChart(chart: Chart): Promise<Blob> {
-    const url = `${this.baseURL}/api/charts/${chart.id}/download`;
+    const url = `${this.baseURL}/api/modules/content/charts/${chart.id}/download`;
     
     const response = await fetch(url);
     if (!response.ok) {
@@ -190,28 +190,28 @@ class APIService {
     if (options.instrument) params.append('instrument', options.instrument);
     if (options.limit) params.append('limit', options.limit.toString());
     
-    return this.request<ChartListResponse>(`/charts/search?${params.toString()}`);
+    return this.request<ChartListResponse>(`/modules/content/charts/search?${params.toString()}`);
   }
 
   async getChartFolders(): Promise<ChartFolder[]> {
-    const response = await this.request<{ folders: ChartFolder[] }>('/folders');
+    const response = await this.request<{ folders: ChartFolder[] }>('/modules/content/folders');
     return response.folders;
   }
 
   // Google Auth methods
   async getGoogleAuthUrl(): Promise<{ auth_url: string; message: string }> {
-    return this.request<{ auth_url: string; message: string }>('/auth/google/url');
+    return this.request<{ auth_url: string; message: string }>('/modules/content/auth/google/url');
   }
 
   async handleGoogleCallback(authorizationCode: string): Promise<{ message: string }> {
-    return this.request<{ message: string }>('/auth/google/callback', {
+    return this.request<{ message: string }>('/modules/content/auth/google/callback', {
       method: 'POST',
       body: JSON.stringify({ authorization_code: authorizationCode }),
     });
   }
 
   async checkGoogleAuthStatus(): Promise<GoogleAuthStatus> {
-    return this.request<GoogleAuthStatus>('/auth/google/status');
+    return this.request<GoogleAuthStatus>('/modules/content/auth/google/status');
   }
 
   // Helper method to check if an error is an authentication error

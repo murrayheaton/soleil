@@ -53,77 +53,60 @@ TRANSPOSITION_TOKENS = {
     "Lyrics",    # Vocal charts for singers
 }
 
-# Instrument to transposition mapping (from your working system)
+# Instrument to transposition mapping
 INSTRUMENT_KEY_MAPPING = {
-    # Bb instruments
-    "tenor": "Bb",
-    "tenor_sax": "Bb",
-    "tenor_saxophone": "Bb",
+    # Bb instruments (Trumpet, Tenor Sax)
     "trumpet": "Bb",
     "tpt": "Bb",
     "tp": "Bb",
-    "clarinet": "Bb",
-    "soprano_sax": "Bb",
-    "soprano_saxophone": "Bb",
+    "tenor": "Bb",
+    "tenor_sax": "Bb",
+    "tenor_saxophone": "Bb",
     
-    # Eb instruments  
+    # Eb instruments (Alto Sax, Bari Sax)
     "alto": "Eb",
     "alto_sax": "Eb",
     "alto_saxophone": "Eb",
     "baritone_sax": "Eb",
     "baritone_saxophone": "Eb",
     "bari_sax": "Eb",
+    "bari": "Eb",
     
-    # Concert pitch (string instruments)
+    # Concert pitch (Violin)
     "violin": "Concert",
-    "viola": "Concert",
-    "cello": "Concert",
-    "string_bass": "Concert",
-    "flute": "Concert",
-    "piccolo": "Concert",
-    "oboe": "Concert",
-    "bassoon": "Concert",
+    "vln": "Concert",
     
-    # Bass clef
+    # Bass clef (Trombone)
     "trombone": "BassClef",
     "tbn": "BassClef",
     "tb": "BassClef",
-    "tuba": "BassClef",
-    "bass_trombone": "BassClef",
-    "euphonium": "BassClef",
-    "baritone": "BassClef",
+    "bone": "BassClef",
     
-    # Harmony/Rhythm section (all see Chords)
+    # Chords (Piano/Keys, Guitar, Bass, Drums)
     "piano": "Chords",
     "pno": "Chords",
+    "keys": "Chords",
     "keyboard": "Chords",
     "guitar": "Chords",
     "gtr": "Chords",
-    "electric_guitar": "Chords",
-    "acoustic_guitar": "Chords",
     "bass": "Chords",
     "electric_bass": "Chords",
     "upright_bass": "Chords",
     "bass_guitar": "Chords",
     "drums": "Chords",
-    "drummer": "Chords",
+    "dr": "Chords",
     "percussion": "Chords",
-    "vibraphone": "Chords",
-    "marimba": "Chords",
-    "xylophone": "Chords",
     
-    # Vocal section
+    # Lyrics (Singers)
     "voice": "Lyrics",
     "vocals": "Lyrics",
     "vox": "Lyrics",
     "singer": "Lyrics",
-    "lead_vocals": "Lyrics",
-    "background_vocals": "Lyrics",
-    "backup_vocals": "Lyrics",
+    "singers": "Lyrics",
 }
 
 # File extensions
-CHART_EXTENSIONS = {".pdf", ".png", ".jpg", ".jpeg", ".gif", ".tiff", ".bmp"}
+CHART_EXTENSIONS = {".pdf"}  # Charts are only PDFs
 AUDIO_EXTENSIONS = {".mp3", ".wav", ".m4a", ".aac", ".flac", ".ogg", ".wma"}
 
 # Validation patterns (from your working system)
@@ -253,6 +236,8 @@ class SOLEILContentParser:
         """
         Parse a filename to extract musical information using SOLEIL conventions.
         
+        Expected format: SongName_Transposition.pdf
+        
         Args:
             filename: The filename to parse.
             
@@ -264,15 +249,11 @@ class SOLEILContentParser:
         extension = file_path.suffix.lower()
         name_without_ext = file_path.stem
         
-        # Determine file type
+        # Determine file type (charts must be PDFs)
         file_type = self._determine_file_type(extension)
         
-        # Try to parse existing SOLEIL format first
-        if self._is_valid_soleil_format(name_without_ext):
-            title, transposition, suffix = self._parse_soleil_format(name_without_ext)
-        else:
-            # Parse non-standard filename
-            title, transposition, suffix = self._parse_non_standard_format(name_without_ext)
+        # Parse the standard SOLEIL format: SongName_Transposition
+        title, transposition = self._parse_standard_format(name_without_ext)
         
         # Clean and validate extracted data
         song_title = self.title_converter.convert(title)
@@ -318,25 +299,21 @@ class SOLEILContentParser:
             re.match(patterns.get('no_transposition_pattern', ''), filename + '.ext') is not None
         )
     
-    def _parse_soleil_format(self, filename: str) -> Tuple[str, Optional[str], str]:
-        """Parse filename that already follows SOLEIL format."""
+    def _parse_standard_format(self, filename: str) -> Tuple[str, Optional[str]]:
+        """Parse filename following standard SOLEIL format: SongName_Transposition."""
         parts = filename.split('_')
         
-        if len(parts) == 2:  # Title_Transposition.ext
-            # Check if second part contains a valid transposition followed by extension
-            second_part = parts[1]
-            for transposition in TRANSPOSITION_TOKENS:
-                if second_part.startswith(transposition + '.'):
-                    # Extract the transposition and extension
-                    extension = second_part[len(transposition):]  # includes the dot
-                    return parts[0], transposition, extension
-            
-            # If no valid transposition found, treat as Title_Suffix.ext
-            return parts[0], None, parts[1]
-        elif len(parts) == 3:  # Title_Transposition_Suffix.ext (legacy format)
-            return parts[0], parts[1], parts[2]
+        if len(parts) == 2:  # SongName_Transposition
+            title = parts[0]
+            transposition = parts[1] if parts[1] in TRANSPOSITION_TOKENS else None
+            return title, transposition
+        elif len(parts) == 1:  # Just SongName (no transposition)
+            return parts[0], None
         else:
-            return filename, None, ""
+            # Multiple underscores - take everything before last underscore as title
+            title = '_'.join(parts[:-1])
+            transposition = parts[-1] if parts[-1] in TRANSPOSITION_TOKENS else None
+            return title, transposition
     
     def _parse_non_standard_format(self, filename: str) -> Tuple[str, Optional[str], str]:
         """Parse non-standard filename to extract components."""

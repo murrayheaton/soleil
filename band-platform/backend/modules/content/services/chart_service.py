@@ -21,6 +21,10 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 from app.services.google_drive import GoogleDriveService, DriveAPIError, AuthenticationError
 from app.config import settings
 
+# Import drive authentication service from drive module
+from modules.drive.services.drive_auth import drive_oauth_service
+from modules.drive.services.drive_client import GoogleDriveService as DriveClient
+
 from io import BytesIO
 from google.oauth2.credentials import Credentials
 
@@ -34,37 +38,29 @@ class ChartService:
         """Initialize the chart service."""
         self.user_email = user_email
         self.drive_service = None
-        self._default_folder_id = None  # Will be set from config or environment
+        # Use the master assets folder - we'll scan recursively for all content
+        self._master_folder_id = os.getenv("GOOGLE_DRIVE_SOURCE_FOLDER_ID")
         
-        # Configure default charts folder for murray@projectbrass.live
-        # This should be set via environment variable in production
-        if user_email == "murray@projectbrass.live":
-            self._default_folder_id = os.getenv("GOOGLE_DRIVE_CHARTS_FOLDER_ID")
-        
-    async def _get_drive_service(self) -> GoogleDriveService:
+    async def _get_drive_service(self) -> DriveClient:
         """Get authenticated Google Drive service."""
         if not self.drive_service:
-            # For now, we'll skip authentication until we fix the import issues
-            # TODO: Implement proper authentication flow
-            raise Exception(f"Google Drive authentication not yet implemented. Please use the drive module endpoints instead.")
+            # Authenticate with the drive OAuth service
+            authenticated = await drive_oauth_service.authenticate()
+            if not authenticated:
+                raise AuthenticationError(f"Google Drive authentication required for user {self.user_email}. Please authenticate first.")
             
-            # Original code commented out:
-            # authenticated = await drive_oauth_service.authenticate()
-            # if not authenticated:
-            #     raise Exception(f"Google Drive authentication required for user {self.user_email}. Please authenticate first.")
-            
-            # # Create authenticated GoogleDriveService
-            # self.drive_service = GoogleDriveService(credentials=drive_oauth_service.creds)
+            # Create authenticated GoogleDriveService using credentials from drive_oauth_service
+            self.drive_service = DriveClient(drive_oauth_service.creds)
         
         return self.drive_service
     
-    async def _get_default_folder(self) -> str:
-        """Get the default Google Drive folder for charts."""
-        if not self._default_folder_id:
-            # For murray@projectbrass.live, use root folder if not configured
-            logger.warning(f"No default charts folder configured for {self.user_email}, using root folder")
-            self._default_folder_id = "root"
-        return self._default_folder_id
+    async def _get_master_folder(self) -> str:
+        """Get the master Google Drive folder for all assets."""
+        if not self._master_folder_id:
+            # Use root folder if not configured
+            logger.warning(f"No master folder configured, using root folder")
+            self._master_folder_id = "root"
+        return self._master_folder_id
     
     async def list_charts(
         self,
@@ -73,26 +69,44 @@ class ChartService:
         limit: int = 50,
         offset: int = 0
     ) -> List[Chart]:
-        """List charts from Google Drive with optional filtering."""
+        """List charts from Google Drive with recursive scanning and intelligent filtering."""
         try:
             drive_service = await self._get_drive_service()
-            target_folder = folder_id or await self._get_default_folder()
+            target_folder = folder_id or await self._get_master_folder()
             
-            # List files from Google Drive folder
-            files = await drive_service.list_files(
-                folder_id=target_folder,
-                max_results=limit + offset
-            )
+            # Recursively get all files from the master folder and subfolders
+            all_files = await self._get_files_recursive(drive_service, target_folder)
             
-            # Parse chart metadata from filenames
+            # Filter for chart files based on naming conventions and file types
             charts = []
-            for file in files[offset:offset + limit]:
-                chart = await self._parse_file_to_chart(file)
-                if chart and (not instrument or instrument.lower() in chart.instruments):
-                    charts.append(chart)
+            for file in all_files:
+                # Parse the file to see if it's a chart
+                parsed_file = await self._parse_file_to_chart(file)
+                
+                # Only include files that:
+                # 1. Parse successfully as charts
+                # 2. Are PDF or image files (common chart formats)
+                # 3. Match the instrument filter if provided
+                if parsed_file:
+                    # Charts must be PDFs only
+                    mime_type = file.get('mimeType', '')
+                    filename = file.get('name', '').lower()
+                    
+                    is_pdf = (
+                        mime_type == 'application/pdf' or 
+                        filename.endswith('.pdf')
+                    )
+                    
+                    if is_pdf:
+                        # Apply instrument filter if provided
+                        if not instrument or self._matches_instrument(parsed_file, instrument):
+                            charts.append(parsed_file)
             
-            logger.info(f"Listed {len(charts)} charts from folder {target_folder}")
-            return charts
+            # Apply pagination
+            paginated_charts = charts[offset:offset + limit]
+            
+            logger.info(f"Found {len(charts)} total charts, returning {len(paginated_charts)} (offset={offset}, limit={limit})")
+            return paginated_charts
             
         except Exception as e:
             logger.error(f"Failed to list charts: {e}")
@@ -144,6 +158,66 @@ class ChartService:
             logger.error(f"Failed to download chart {chart_id}: {e}")
             raise
     
+    async def _get_files_recursive(self, drive_service: DriveClient, folder_id: str) -> List[dict]:
+        """Recursively get all files from a folder and its subfolders."""
+        all_files = []
+        
+        try:
+            # Get files in current folder
+            files = await drive_service.list_files(
+                folder_id=folder_id,
+                page_size=1000  # Get more files at once for efficiency
+            )
+            
+            for file in files:
+                mime_type = file.get('mimeType', '')
+                
+                # If it's a folder, recursively get its contents
+                if mime_type == 'application/vnd.google-apps.folder':
+                    subfolder_files = await self._get_files_recursive(drive_service, file['id'])
+                    all_files.extend(subfolder_files)
+                else:
+                    # Add the file to our list
+                    all_files.append(file)
+                    
+        except Exception as e:
+            logger.warning(f"Error scanning folder {folder_id}: {e}")
+            
+        return all_files
+    
+    def _matches_instrument(self, chart: Chart, instrument: str) -> bool:
+        """Check if a chart matches the requested instrument/transposition."""
+        instrument_lower = instrument.lower()
+        
+        # Check if the chart's key matches the instrument transposition
+        if chart.key and chart.key.lower() == instrument_lower:
+            return True
+            
+        # Check if any of the chart's instruments match
+        if chart.instruments:
+            for inst in chart.instruments:
+                if instrument_lower in inst.lower():
+                    return True
+                    
+        # Check special cases for transposition groups
+        transposition_groups = {
+            'bb': ['trumpet', 'tenor'],
+            'eb': ['alto', 'bari'],
+            'concert': ['violin'],
+            'bassclef': ['trombone'],
+            'chords': ['piano', 'keys', 'guitar', 'bass', 'drums'],
+            'lyrics': ['vocal', 'voice', 'singer', 'lyric']
+        }
+        
+        # Check if the requested instrument is a transposition group
+        if instrument_lower in transposition_groups:
+            chart_text = f"{chart.title} {chart.filename} {' '.join(chart.instruments or [])}".lower()
+            for keyword in transposition_groups[instrument_lower]:
+                if keyword in chart_text:
+                    return True
+                    
+        return False
+    
     async def search_charts(
         self,
         query: str,
@@ -154,29 +228,36 @@ class ChartService:
         """Search charts by name or content in Google Drive."""
         try:
             drive_service = await self._get_drive_service()
-            target_folder = folder_id or await self._get_default_folder()
+            target_folder = folder_id or await self._get_master_folder()
             
-            # Build search query for Google Drive API
-            search_query = f"name contains '{query}'"
+            # Get all files recursively
+            all_files = await self._get_files_recursive(drive_service, target_folder)
             
-            # Search files in Google Drive
-            search_results = await drive_service.list_files(
-                folder_id=target_folder,
-                query=search_query,
-                max_results=limit * 2  # Get more results for filtering
-            )
+            # Filter files that match the search query
+            matching_charts = []
+            query_lower = query.lower()
             
-            # Parse and filter results
-            charts = []
-            for file in search_results:
-                chart = await self._parse_file_to_chart(file)
-                if chart and (not instrument or instrument.lower() in chart.instruments):
-                    charts.append(chart)
-                    if len(charts) >= limit:
-                        break
+            for file in all_files:
+                filename = file.get('name', '').lower()
+                
+                # Check if file matches search query
+                if query_lower in filename:
+                    # Charts must be PDFs only
+                    mime_type = file.get('mimeType', '')
+                    is_pdf = (
+                        mime_type == 'application/pdf' or 
+                        filename.endswith('.pdf')
+                    )
+                    
+                    if is_pdf:
+                        chart = await self._parse_file_to_chart(file)
+                        if chart and (not instrument or self._matches_instrument(chart, instrument)):
+                            matching_charts.append(chart)
+                            if len(matching_charts) >= limit:
+                                break
             
-            logger.info(f"Search for '{query}' returned {len(charts)} charts")
-            return charts
+            logger.info(f"Search for '{query}' returned {len(matching_charts)} charts")
+            return matching_charts
             
         except Exception as e:
             logger.error(f"Failed to search charts: {e}")
@@ -221,48 +302,85 @@ class ChartService:
             return None
     
     async def get_chart_folders(self) -> List[dict]:
-        """Get available chart folders from Google Drive."""
+        """Get available folders that contain charts from Google Drive."""
         try:
             drive_service = await self._get_drive_service()
             
-            # List folders from the default folder
-            default_folder = await self._get_default_folder()
+            # Start from the master folder
+            master_folder = await self._get_master_folder()
             
-            # Search for folders in the default folder
-            folder_query = "mimeType='application/vnd.google-apps.folder'"
-            folders = await drive_service.list_files(
-                folder_id=default_folder,
-                query=folder_query,
-                max_results=100
-            )
+            # Get all folders recursively
+            all_folders = await self._get_folders_with_charts(drive_service, master_folder)
             
-            # Filter folders that contain chart files
-            chart_folders = []
-            for folder in folders:
-                chart_count = await self._count_charts_in_folder(folder['id'])
-                if chart_count > 0:
-                    folder_data = {
-                        'id': folder['id'],
-                        'name': folder['name'],
-                        'chart_count': chart_count
-                    }
-                    chart_folders.append(folder_data)
-            
-            logger.info(f"Found {len(chart_folders)} chart folders")
-            return chart_folders
+            logger.info(f"Found {len(all_folders)} folders containing charts")
+            return all_folders
             
         except Exception as e:
             logger.error(f"Failed to get chart folders: {e}")
             raise
     
-    async def _count_charts_in_folder(self, folder_id: str) -> int:
-        """Count the number of chart files in a folder."""
+    async def _get_folders_with_charts(self, drive_service: DriveClient, folder_id: str, path: str = "") -> List[dict]:
+        """Recursively find all folders that contain chart files."""
+        folders_with_charts = []
+        
         try:
-            drive_service = await self._get_drive_service()
-            files = await drive_service.list_files(
+            # Get all items in current folder
+            items = await drive_service.list_files(
                 folder_id=folder_id,
-                max_results=1000  # Reasonable limit for counting
+                page_size=1000
             )
-            return len(files)
+            
+            chart_count = 0
+            subfolders = []
+            
+            for item in items:
+                mime_type = item.get('mimeType', '')
+                
+                if mime_type == 'application/vnd.google-apps.folder':
+                    # It's a subfolder - we'll process it recursively
+                    subfolders.append(item)
+                else:
+                    # Check if it's a PDF chart file
+                    filename = item.get('name', '').lower()
+                    is_pdf = (
+                        mime_type == 'application/pdf' or 
+                        filename.endswith('.pdf')
+                    )
+                    
+                    if is_pdf:
+                        chart_count += 1
+            
+            # If this folder contains charts, add it to the list
+            if chart_count > 0:
+                folder_name = await self._get_folder_name(drive_service, folder_id)
+                folders_with_charts.append({
+                    'id': folder_id,
+                    'name': folder_name,
+                    'path': path,
+                    'chart_count': chart_count
+                })
+            
+            # Recursively process subfolders
+            for subfolder in subfolders:
+                subfolder_path = f"{path}/{subfolder['name']}" if path else subfolder['name']
+                subfolder_results = await self._get_folders_with_charts(
+                    drive_service, 
+                    subfolder['id'], 
+                    subfolder_path
+                )
+                folders_with_charts.extend(subfolder_results)
+                
+        except Exception as e:
+            logger.warning(f"Error scanning folder {folder_id}: {e}")
+            
+        return folders_with_charts
+    
+    async def _get_folder_name(self, drive_service: DriveClient, folder_id: str) -> str:
+        """Get the name of a folder by its ID."""
+        try:
+            if folder_id == await self._get_master_folder():
+                return "Master Assets"
+            metadata = await drive_service.get_file_metadata(folder_id)
+            return metadata.get('name', 'Unknown Folder')
         except Exception:
-            return 0
+            return "Unknown Folder"
