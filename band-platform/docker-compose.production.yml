@@ -56,6 +56,7 @@ services:
       - PORT=8000
     volumes:
       - ./storage:/app/storage
+      - /etc/soleil/service-account-key.json:/etc/soleil/service-account-key.json:ro
     depends_on:
       postgres:
         condition: service_healthy
