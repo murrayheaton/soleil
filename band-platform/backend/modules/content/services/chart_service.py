@@ -21,9 +21,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 from app.services.google_drive import GoogleDriveService, DriveAPIError, AuthenticationError
 from app.config import settings
 
-# Import drive authentication service from drive module
-from modules.drive.services.drive_auth import drive_oauth_service
-from modules.drive.services.drive_client import GoogleDriveService as DriveClient
+# Import drive service account for shared band drive access
+from modules.drive.services.drive_service_account import drive_service_account
 
 from io import BytesIO
 from google.oauth2.credentials import Credentials
@@ -41,16 +40,15 @@ class ChartService:
         # Use the master assets folder - we'll scan recursively for all content
         self._master_folder_id = os.getenv("GOOGLE_DRIVE_SOURCE_FOLDER_ID")
         
-    async def _get_drive_service(self) -> DriveClient:
-        """Get authenticated Google Drive service."""
+    async def _get_drive_service(self):
+        """Get authenticated Google Drive service using service account."""
         if not self.drive_service:
-            # Authenticate with the drive OAuth service
-            authenticated = await drive_oauth_service.authenticate()
+            # Authenticate with service account for shared band drive access
+            authenticated = await drive_service_account.authenticate()
             if not authenticated:
-                raise AuthenticationError(f"Google Drive authentication required for user {self.user_email}. Please authenticate first.")
+                raise AuthenticationError(f"Failed to authenticate with Google Drive service account. Please check service account configuration.")
             
-            # Create authenticated GoogleDriveService using credentials from drive_oauth_service
-            self.drive_service = DriveClient(drive_oauth_service.creds)
+            self.drive_service = drive_service_account
         
         return self.drive_service
     
@@ -158,7 +156,7 @@ class ChartService:
             logger.error(f"Failed to download chart {chart_id}: {e}")
             raise
     
-    async def _get_files_recursive(self, drive_service: DriveClient, folder_id: str) -> List[dict]:
+    async def _get_files_recursive(self, drive_service, folder_id: str) -> List[dict]:
         """Recursively get all files from a folder and its subfolders."""
         all_files = []
         

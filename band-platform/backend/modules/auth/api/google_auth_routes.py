@@ -64,22 +64,9 @@ async def google_callback(code: str):
         tokens = response.json()
         
         if 'access_token' in tokens:
-            # Save the Google tokens for Drive API access
-            import json
-            google_token_data = {
-                'token': tokens.get('access_token'),
-                'refresh_token': tokens.get('refresh_token'),
-                'token_uri': 'https://oauth2.googleapis.com/token',
-                'client_id': os.getenv('GOOGLE_CLIENT_ID'),
-                'client_secret': os.getenv('GOOGLE_CLIENT_SECRET'),
-                'scopes': ['https://www.googleapis.com/auth/drive.readonly'],
-                'expiry': None  # Will be set by the Google auth library
-            }
-            
-            # Save to google_token.json for the Drive API to use
-            with open('google_token.json', 'w') as f:
-                json.dump(google_token_data, f)
-            logger.info("Saved Google tokens for Drive API access")
+            # Note: We're using a service account for Drive access,
+            # so we don't need to save individual user tokens for Drive.
+            # User authentication is only for identifying the user.
             
             # Get user info from Google
             user_info_response = requests.get(
