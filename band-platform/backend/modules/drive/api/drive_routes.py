@@ -13,8 +13,12 @@ from app.api.role_helpers import get_current_user
 from app.models.user import User
 from ..services.drive_client import GoogleDriveService, DriveAPIError
 from ..services.drive_auth import drive_oauth_service
+from modules.content.services.soleil_content_parser import SOLEILContentParser, get_instrument_key
 
 router = APIRouter(prefix="/drive", tags=["Drive"])
+
+# Initialize content parser for instrument filtering
+content_parser = SOLEILContentParser()
 
 
 @router.get("/auth/url")
@@ -259,3 +263,132 @@ async def get_drive_stats(
         return drive_service.get_stats()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get stats: {str(e)}")
+
+
+@router.get("/{instrument}-view")
+async def get_instrument_view(
+    instrument: str,
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """
+    Get files filtered by instrument for the current user.
+    
+    This endpoint implements the instrument-based filtering that the frontend expects.
+    It returns only the charts and audio files relevant to the user's instrument.
+    
+    Supported instrument views:
+    - Bb: Trumpet, Tenor Sax
+    - Eb: Alto Sax, Bari Sax
+    - Concert: Violin
+    - BassClef: Trombone
+    - Chords: Guitar, Piano, Bass, Drums (harmony section)
+    - Lyrics: Singers
+    
+    Args:
+        instrument: Instrument type (e.g., "Bb", "Eb", "Concert", "BassClef", "Chords", "Lyrics")
+        current_user: Currently authenticated user.
+        
+    Returns:
+        Dictionary containing filtered files organized by song.
+    """
+    try:
+        # Authenticate with Google Drive
+        if not await drive_oauth_service.authenticate():
+            raise HTTPException(
+                status_code=401, detail="Not authenticated with Google Drive"
+            )
+        
+        # Get the user's instrument and transposition
+        user_instrument = current_user.instrument.lower() if current_user.instrument else None
+        user_transposition = get_instrument_key(user_instrument) if user_instrument else None
+        
+        # Validate that the requested instrument view matches the user's instrument
+        if user_transposition and user_transposition != instrument:
+            raise HTTPException(
+                status_code=403, 
+                detail=f"User instrument ({user_transposition}) doesn't match requested view ({instrument})"
+            )
+        
+        # Get the band folder ID from environment (you'll need to set this)
+        import os
+        band_folder_id = os.getenv('GOOGLE_DRIVE_SOURCE_FOLDER_ID')
+        if not band_folder_id:
+            raise HTTPException(
+                status_code=500, 
+                detail="Band folder ID not configured. Please set GOOGLE_DRIVE_SOURCE_FOLDER_ID in environment."
+            )
+        
+        # Create drive service and get files
+        drive_service = GoogleDriveService(drive_oauth_service.creds)
+        
+        # Get all files in the band folder
+        all_files = await drive_service.list_files(folder_id=band_folder_id)
+        
+        # Filter files by instrument and organize by song
+        songs = {}
+        
+        for file_data in all_files:
+            try:
+                # Parse filename for musical information
+                parsed = content_parser.parse_filename(file_data["name"])
+                
+                # Skip files that don't parse correctly
+                if not parsed.song_title:
+                    continue
+                
+                # Initialize song if not exists
+                if parsed.song_title not in songs:
+                    songs[parsed.song_title] = {
+                        "song_title": parsed.song_title,
+                        "charts": [],
+                        "audio": [],
+                        "total_files": 0
+                    }
+                
+                # Add file to appropriate category
+                file_info = {
+                    "id": file_data["id"],
+                    "name": file_data["name"],
+                    "type": parsed.file_type.value,
+                    "link": f"https://drive.google.com/file/d/{file_data['id']}/view",
+                    "is_placeholder": "_X" in file_data["name"]  # Check for placeholder suffix
+                }
+                
+                if parsed.file_type.value == "chart":
+                    # Only add charts that match the instrument's transposition
+                    if parsed.key == instrument:
+                        songs[parsed.song_title]["charts"].append(file_info)
+                        songs[parsed.song_title]["total_files"] += 1
+                elif parsed.file_type.value == "audio":
+                    # Add all audio files for the song
+                    songs[parsed.song_title]["audio"].append(file_info)
+                    songs[parsed.song_title]["total_files"] += 1
+                    
+            except Exception as e:
+                # Log parsing errors but continue processing other files
+                print(f"Error parsing file {file_data['name']}: {e}")
+                continue
+        
+        # Convert to list and sort by song title
+        songs_list = list(songs.values())
+        songs_list.sort(key=lambda x: x["song_title"])
+        
+        return {
+            "status": "success",
+            "instrument": user_instrument or "unknown",
+            "transposition": instrument,
+            "songs": songs_list,
+            "total_songs": len(songs_list),
+            "message": f"Successfully loaded {len(songs_list)} songs for {instrument} instruments"
+        }
+        
+    except DriveAPIError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Failed to get instrument view: {str(e)}"
+        )

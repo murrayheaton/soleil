@@ -36,7 +36,7 @@ class ParsedFile:
     arranger: Optional[str] = None
     chart_type: Optional[str] = None
     tempo: Optional[str] = None
-    metadata: Dict[str, str] = None
+    metadata: Optional[Dict[str, str]] = None
     
     def __post_init__(self):
         if self.metadata is None:
@@ -47,8 +47,10 @@ class ParsedFile:
 TRANSPOSITION_TOKENS = {
     "Bb",        # B-flat instruments (tenor sax, trumpet, clarinet)
     "Eb",        # E-flat instruments (alto sax, baritone sax)
-    "Concert",   # Concert pitch (piano, guitar, bass)
+    "Concert",   # Concert pitch (piano, guitar, bass, violin)
     "BassClef",  # Bass clef instruments (trombone, tuba, bass)
+    "Chords",    # Harmony/Rhythm section (guitar, piano, bass, drums)
+    "Lyrics",    # Vocal charts for singers
 }
 
 # Instrument to transposition mapping (from your working system)
@@ -72,14 +74,15 @@ INSTRUMENT_KEY_MAPPING = {
     "baritone_saxophone": "Eb",
     "bari_sax": "Eb",
     
-    # Concert pitch
-    "piano": "Concert",
-    "pno": "Concert",
-    "guitar": "Concert",
-    "gtr": "Concert",
-    "bass": "Concert",
-    "vocals": "Concert",
-    "vox": "Concert",
+    # Concert pitch (string instruments)
+    "violin": "Concert",
+    "viola": "Concert",
+    "cello": "Concert",
+    "string_bass": "Concert",
+    "flute": "Concert",
+    "piccolo": "Concert",
+    "oboe": "Concert",
+    "bassoon": "Concert",
     
     # Bass clef
     "trombone": "BassClef",
@@ -87,6 +90,36 @@ INSTRUMENT_KEY_MAPPING = {
     "tb": "BassClef",
     "tuba": "BassClef",
     "bass_trombone": "BassClef",
+    "euphonium": "BassClef",
+    "baritone": "BassClef",
+    
+    # Harmony/Rhythm section (all see Chords)
+    "piano": "Chords",
+    "pno": "Chords",
+    "keyboard": "Chords",
+    "guitar": "Chords",
+    "gtr": "Chords",
+    "electric_guitar": "Chords",
+    "acoustic_guitar": "Chords",
+    "bass": "Chords",
+    "electric_bass": "Chords",
+    "upright_bass": "Chords",
+    "bass_guitar": "Chords",
+    "drums": "Chords",
+    "drummer": "Chords",
+    "percussion": "Chords",
+    "vibraphone": "Chords",
+    "marimba": "Chords",
+    "xylophone": "Chords",
+    
+    # Vocal section
+    "voice": "Lyrics",
+    "vocals": "Lyrics",
+    "vox": "Lyrics",
+    "singer": "Lyrics",
+    "lead_vocals": "Lyrics",
+    "background_vocals": "Lyrics",
+    "backup_vocals": "Lyrics",
 }
 
 # File extensions
@@ -95,8 +128,8 @@ AUDIO_EXTENSIONS = {".mp3", ".wav", ".m4a", ".aac", ".flac", ".ogg", ".wma"}
 
 # Validation patterns (from your working system)
 VALIDATION_PATTERNS = {
-    # Standard format: Title_Transposition_Suffix.ext
-    "standard_pattern": r"^[A-Z][a-zA-Z0-9]*_(Bb|Eb|Concert|BassClef)_[A-Z][a-zA-Z0-9]*\.[a-zA-Z0-9]+$",
+    # Standard format: Title_Transposition.ext (simplified, no redundant _Chart suffix)
+    "standard_pattern": r"^[A-Z][a-zA-Z0-9]*_(Bb|Eb|Concert|BassClef|Chords|Lyrics)\.[a-zA-Z0-9]+$",
     
     # Event doc format: YYYY-MM-DD_Suffix.ext  
     "event_pattern": r"^\d{4}-\d{2}-\d{2}_[A-Z][a-zA-Z0-9]*\.[a-zA-Z0-9]+$",
@@ -280,22 +313,28 @@ class SOLEILContentParser:
         patterns = VALIDATION_PATTERNS
         
         return (
-            re.match(patterns.get('standard_pattern', ''), filename + '.ext') or
-            re.match(patterns.get('event_pattern', ''), filename + '.ext') or
-            re.match(patterns.get('no_transposition_pattern', ''), filename + '.ext')
+            re.match(patterns.get('standard_pattern', ''), filename + '.ext') is not None or
+            re.match(patterns.get('event_pattern', ''), filename + '.ext') is not None or
+            re.match(patterns.get('no_transposition_pattern', ''), filename + '.ext') is not None
         )
     
     def _parse_soleil_format(self, filename: str) -> Tuple[str, Optional[str], str]:
         """Parse filename that already follows SOLEIL format."""
         parts = filename.split('_')
         
-        if len(parts) == 3:  # Title_Transposition_Suffix
+        if len(parts) == 2:  # Title_Transposition.ext
+            # Check if second part contains a valid transposition followed by extension
+            second_part = parts[1]
+            for transposition in TRANSPOSITION_TOKENS:
+                if second_part.startswith(transposition + '.'):
+                    # Extract the transposition and extension
+                    extension = second_part[len(transposition):]  # includes the dot
+                    return parts[0], transposition, extension
+            
+            # If no valid transposition found, treat as Title_Suffix.ext
+            return parts[0], None, parts[1]
+        elif len(parts) == 3:  # Title_Transposition_Suffix.ext (legacy format)
             return parts[0], parts[1], parts[2]
-        elif len(parts) == 2:  # Title_Suffix or Date_Suffix
-            if re.match(r'^\d{4}-\d{2}-\d{2}$', parts[0]):
-                return parts[0], None, parts[1]  # Event format
-            else:
-                return parts[0], None, parts[1]  # No transposition
         else:
             return filename, None, ""
     
@@ -363,6 +402,8 @@ class SOLEILContentParser:
             'eb': 'Eb', 'Eb': 'Eb', 'EB': 'Eb',
             'concert': 'Concert', 'Concert': 'Concert', 'CONCERT': 'Concert',
             'bassclef': 'BassClef', 'BassClef': 'BassClef', 'BASSCLEF': 'BassClef',
+            'chords': 'Chords', 'Chords': 'Chords', 'CHORDS': 'Chords',
+            'lyrics': 'Lyrics', 'Lyrics': 'Lyrics', 'LYRICS': 'Lyrics',
         }
         
         return key_mapping.get(key, key)

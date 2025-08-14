@@ -31,10 +31,10 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Import modules
-from modules.init_app import create_app
+from modules.init_app import create_modular_app
 
 # Create the FastAPI application
-app = create_app()
+app = create_modular_app()
 
 # Remove duplicate module registration - now handled by init_app.py
 # from modules.register_modules import register_all_modules

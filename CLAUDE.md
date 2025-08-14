@@ -1,152 +1,231 @@
-# Claude AI Assistant Rules
+# Claude AI Assistant Rules for SOLEil
 
-## 🚨 CRITICAL: DevContainer Working Directory Rules
+**Last Updated:** 2025-08-05  
+**Project Status:** Production-ready band platform with modular architecture and multi-agent development system
 
-**YOU ARE IN**: `/Users/murrayheaton/Documents/LocalCode/DevEnv/soleil/`  
-**YOU MUST**: Only make changes within this directory  
-**YOU CANNOT**: Modify files outside of the soleil project  
+## 🎯 **Current Project State**
 
-### Pre-Work Directory Verification
-```bash
-# ALWAYS verify location before ANY operation
-pwd
-# MUST show: /Users/murrayheaton/Documents/LocalCode/DevEnv/soleil
+SOLEil is a **production-ready band platform** with:
+- ✅ **Complete authentication system** (Google OAuth, JWT, sessions)
+- ✅ **Professional UI** (Next.js 15, TypeScript, Tailwind CSS)
+- ✅ **Google Drive integration** (file streaming, instrument-based filtering)
+- ✅ **Modular backend architecture** (FastAPI, SQLAlchemy, Redis)
+- ✅ **Multi-agent development system** for parallel development
 
-# If not in correct location
-cd /Users/murrayheaton/Documents/LocalCode/DevEnv/soleil
+## 🏗️ **Codebase Structure**
 
-# Verify git repository
-git remote -v
-# Should show: origin git@github.com:murrayheaton/soleil.git
+### **Root Directory** (`/soleil/`)
+```
+soleil/
+├── band-platform/           # Main application
+├── agent_system/           # Multi-agent framework
+├── agent_deployment/       # Agent coordination system
+├── agent_contexts/         # Agent documentation and contexts
+├── PRPs/                   # Project Requirement Prompts
+├── docs/                   # Project documentation
+└── [various .md files]     # Project context and guides
 ```
 
-## 📋 PRP (Project Requirement Prompt) Execution
-
-### PRP Workflow
-1. **Check for active PRPs**: `ls PRPs/active/`
-2. **Read PRP completely** before starting
-3. **Follow all Pre-Implementation Requirements**
-4. **Execute tasks in order**
-5. **Run all validation tests**
-6. **Archive completed PRPs**: 
-   ```bash
-   mv PRPs/active/[completed].md PRPs/archive/
-   git add PRPs/
-   git commit -m "chore: archive completed PRP [name]"
-   ```
-
-### Directory Boundaries
-- 🟢 **CAN MODIFY**: `/DevEnv/soleil/*`  
-- 🔴 **READ ONLY**: `/DevEnv/template-generator/*` (for reference)
-- 🚫 **FORBIDDEN**: All other directories in DevEnv
-
-### Reference External Templates
-```bash
-# Good - Reading for reference
-cat /Users/murrayheaton/Documents/LocalCode/DevEnv/template-generator/PRPs/INITIAL.md
-
-# Bad - Modifying external files
-echo "changes" > ../template-generator/anything.md  # NO!
+### **Main Application** (`/band-platform/`)
+```
+band-platform/
+├── backend/                # FastAPI backend
+│   ├── modules/           # Modular architecture
+│   │   ├── auth/         # Authentication module
+│   │   ├── content/      # Content management
+│   │   ├── drive/        # Google Drive integration
+│   │   ├── sync/         # Real-time synchronization
+│   │   ├── dashboard/    # Dashboard aggregation
+│   │   └── core/         # Shared utilities
+│   ├── start_server.py   # Main application entry point
+│   └── requirements.txt  # Python dependencies
+└── frontend/              # Next.js frontend
+    ├── src/
+    │   ├── app/          # Next.js app router
+    │   ├── components/   # React components
+    │   ├── modules/      # Frontend module components
+    │   └── types/        # TypeScript definitions
+    └── package.json      # Node.js dependencies
 ```
 
-### Important PRP Notes
-- PRPs are provided externally and placed in `PRPs/active/`
-- Do NOT generate PRPs - only execute existing ones
-- Each PRP is self-contained with all necessary context
-- Production endpoints: https://solepower.live
-- Backend API: https://solepower.live/api
-- Always create feature branches as specified in PRPs
-- Test thoroughly before deploying
-- Archive PRPs to `PRPs/archive/` when complete
+## 🚀 **Development Workflow**
 
-## 🔄 Project Awareness & Context
-- **Always read `PLANNING.md`** at the start of a new conversation to understand the project's architecture, goals, style, and constraints.
-- **Check `TASK.md`** before starting a new task. If the task isn't listed, add it with a brief description and today's date.
-- **Use consistent naming conventions, file structure, and architecture patterns** as described in `PLANNING.md`.
-- **Use venv_linux** (the virtual environment) whenever executing Python commands, including for unit tests.
+### **1. Multi-Agent Development System**
+- **NEVER work outside your assigned module** (see `AGENT_GUIDE.md`)
+- **Use EventBus for cross-module communication** (see `MULTI_AGENT_DEVELOPMENT_SYSTEM.md`)
+- **Follow module structure** with `MODULE.md` documentation
+- **Validate modules** before committing: `python scripts/validate_module.py [module_name]`
 
-### 🧱 Code Structure & Modularity
-- **Never create a file longer than 500 lines of code.** If a file approaches this limit, refactor by splitting it into modules or helper files.
-- **Organize code into clearly separated modules**, grouped by feature or responsibility.
-  For agents this looks like:
-    - `agent.py` - Main agent definition and execution logic 
-    - `tools.py` - Tool functions used by the agent 
-    - `prompts.py` - System prompts
-- **Use clear, consistent imports** (prefer relative imports within packages).
-- **Use clear, consistent imports** (prefer relative imports within packages).
-- **Use python_dotenv and load_env()** for environment variables.
+### **2. PRP (Project Requirement Prompt) Execution**
+- **Check active PRPs**: `ls PRPs/active/`
+- **Read PRP completely** before starting
+- **Follow module boundaries** strictly
+- **Archive completed PRPs**: `mv PRPs/active/[name].md PRPs/archive/`
 
-### 🧪 Testing & Reliability
-- **Always create Pytest unit tests for new features** (functions, classes, routes, etc).
-- **After updating any logic**, check whether existing unit tests need to be updated. If so, do it.
-- **Tests should live in a `/tests` folder** mirroring the main app structure.
-  - Include at least:
-    - 1 test for expected use
-    - 1 edge case
-    - 1 failure case
+### **3. Code Quality Standards**
+- **File size limit**: Never exceed 500 lines per file
+- **Testing**: Always write tests for new functionality
+- **Documentation**: Update `MODULE.md` when adding features
+- **Type safety**: Use TypeScript (frontend) and type hints (Python)
 
-### ✅ Task Completion
-- **Mark completed tasks in `TASK.md`** immediately after finishing them.
-- Add new sub-tasks or TODOs discovered during development to `TASK.md` under a "Discovered During Work" section.
+## 🛠️ **Technology Stack**
 
-### 📝 Development Documentation (REQUIRED)
-After completing any implementation work:
+### **Backend** (`/band-platform/backend/`)
+- **Framework**: FastAPI with modular routing
+- **Database**: SQLAlchemy with async support
+- **Authentication**: Google OAuth2, JWT, session management
+- **APIs**: Google Drive, Google Sheets integration
+- **Testing**: Pytest with async support
+- **Code Quality**: Black, Ruff, MyPy
 
-1. **Update DEV_LOG.md**
-   - Add a new session entry with today's date
-   - **INCLUDE USER PROMPT REFERENCES**: Quote specific user requests that drove each change
-   - Write a human-friendly summary of what was accomplished
-   - Include what was fixed, decisions made, and what's next
-   - Keep language non-technical and focused on user impact
+### **Frontend** (`/band-platform/frontend/`)
+- **Framework**: Next.js 15 with app router
+- **Language**: TypeScript 5
+- **Styling**: Tailwind CSS 4
+- **State Management**: React Context + hooks
+- **Testing**: Jest + React Testing Library
+- **PWA**: Next-PWA for offline functionality
 
-2. **Update DEV_LOG_TECHNICAL.md**
-   - Add corresponding technical entry with implementation details
-   - **REFERENCE USER PROMPTS**: Link technical changes to specific user requests
-   - Document architecture decisions and trade-offs
-   - List specific files changed and why
-   - Note any technical debt incurred
+### **Development Tools**
+- **Package Manager**: npm (frontend), pip (backend)
+- **Environment**: Python 3.11+, Node.js 18+
+- **Virtual Environment**: `venv_linux` (backend)
+- **Code Formatting**: Black (Python), Prettier (TypeScript)
 
-3. **Review PRODUCT_VISION.md**
-   - If new features were added, update the "Current Features" section
-   - If user experience changed significantly, revise the experience description
-   - Keep the vision aspirational but grounded in current reality
+## 📋 **Development Rules**
 
-**IMPORTANT DOCUMENTATION RULES**: 
-- **All documentation must be in CHRONOLOGICAL FORMAT** with dated entries
-- **Each entry must reference specific user prompts** that triggered the changes
-- **Never overwrite previous entries** - always append new dated sections
-- **Create dated versions** when major milestones are reached (e.g., PRODUCT_VISION_2025-07-30.md)
-- **UPDATE FREQUENCY**: Update all documentation after every 15 user prompts OR when implementation is complete
-- **EXCEPTION**: Changes that don't align with user requests can be removed from logs with user permission
+### **✅ ALWAYS DO THIS**
+1. **Read `AGENT_GUIDE.md`** before starting work
+2. **Use modular architecture** - work within assigned modules only
+3. **Write tests** for new functionality
+4. **Update `MODULE.md`** when adding features
+5. **Use EventBus** for cross-module communication
+6. **Follow file size limits** (500 lines max)
+7. **Use type hints** and proper error handling
 
-**Note**: These updates are as important as the code itself. They maintain project context and enable better AI assistance in future sessions.
+### **🚫 NEVER DO THIS**
+1. **NEVER modify files outside your assigned module**
+2. **NEVER create direct dependencies between modules**
+3. **NEVER access another module's database tables directly**
+4. **NEVER import private functions** (those starting with `_`)
+5. **NEVER commit without running module validation**
+6. **NEVER exceed 500 lines per file**
 
-### 📎 Style & Conventions
-- **Use Python** as the primary language.
-- **Follow PEP8**, use type hints, and format with `black`.
-- **Use `pydantic` for data validation**.
-- Use `FastAPI` for APIs and `SQLAlchemy` or `SQLModel` for ORM if applicable.
-- Write **docstrings for every function** using the Google style:
-  ```python
-  def example():
-      """
-      Brief summary.
+## 🔧 **Common Commands**
 
-      Args:
-          param1 (type): Description.
+### **Backend Development**
+```bash
+# Activate virtual environment
+source band-platform/backend/venv_linux/bin/activate
 
-      Returns:
-          type: Description.
-      """
-  ```
+# Start development server
+cd band-platform/backend
+python start_server.py
 
-### 📚 Documentation & Explainability
-- **Update `README.md`** when new features are added, dependencies change, or setup steps are modified.
-- **Comment non-obvious code** and ensure everything is understandable to a mid-level developer.
-- When writing complex logic, **add an inline `# Reason:` comment** explaining the why, not just the what.
+# Run tests
+pytest
 
-### 🧠 AI Behavior Rules
-- **Never assume missing context. Ask questions if uncertain.**
-- **Never hallucinate libraries or functions** – only use known, verified Python packages.
-- **Always confirm file paths and module names** exist before referencing them in code or tests.
-- **Never delete or overwrite existing code** unless explicitly instructed to or if part of a task from `TASK.md`.
+# Validate module
+python scripts/validate_module.py [module_name]
+```
+
+### **Frontend Development**
+```bash
+# Install dependencies
+cd band-platform/frontend
+npm install
+
+# Start development server
+npm run dev
+
+# Run tests
+npm test
+
+# Build for production
+npm run build
+```
+
+### **Module Management**
+```bash
+# Generate module context
+python scripts/generate_module_context.py [module_name]
+
+# Validate module structure
+python scripts/validate_module.py [module_name]
+
+# Check module dependencies
+python scripts/check_module_dependencies.py [module_name]
+```
+
+## 📚 **Key Documentation Files**
+
+- **`SOLEIL_CONTEXT.md`** - Product vision and current status
+- **`ARCHITECTURE.md`** - Technical architecture and module structure
+- **`AGENT_GUIDE.md`** - AI agent development guidelines
+- **`MULTI_AGENT_DEVELOPMENT_SYSTEM.md`** - Agent system architecture
+- **`TASK.md`** - Current development tasks and progress
+- **`PRPs/active/`** - Active project requirements
+
+## 🌐 **Environment & Deployment**
+
+### **Production**
+- **Domain**: https://solepower.live
+- **API**: https://solepower.live/api
+- **Environment**: Production Docker containers
+
+### **Development**
+- **Backend**: http://localhost:8000
+- **Frontend**: http://localhost:3000
+- **Environment**: Local development with `.env` files
+
+## 🧪 **Testing Strategy**
+
+### **Backend Testing**
+- **Unit tests**: Module-specific test suites
+- **Integration tests**: Cross-module functionality
+- **API tests**: Endpoint validation
+- **Database tests**: Model and migration testing
+
+### **Frontend Testing**
+- **Component tests**: Individual React components
+- **Integration tests**: User workflows
+- **E2E tests**: Complete user journeys
+- **Accessibility tests**: Screen reader and keyboard navigation
+
+## 📝 **Documentation Requirements**
+
+### **Module Documentation**
+- **`MODULE.md`**: Primary module documentation
+- **Function docstrings**: Google style with type hints
+- **Inline comments**: Explain complex logic with `# Reason:` comments
+- **API documentation**: OpenAPI/Swagger specs
+
+### **Project Documentation**
+- **Update frequency**: After every 15 user prompts OR when implementation is complete
+- **Chronological format**: Dated entries with user prompt references
+- **Version control**: Create dated versions for major milestones
+
+## 🔍 **Debugging & Troubleshooting**
+
+### **Common Issues**
+- **Module import errors**: Check `__init__.py` files and module registration
+- **Circular dependencies**: Use EventBus for cross-module communication
+- **Type errors**: Ensure proper type hints and TypeScript configuration
+- **Authentication issues**: Check OAuth credentials and session configuration
+
+### **Debug Tools**
+- **Backend logging**: Check `backend.log` and `server.log`
+- **Frontend logging**: Check browser console and `frontend.log`
+- **Module validation**: Use `validate_module.py` script
+- **Dependency checking**: Use `check_module_dependencies.py` script
+
+## 🎯 **Current Development Focus**
+
+- **Offline chart viewer** (PRP 10)
+- **Google Drive chart integration fixes** (PRP 12)
+- **Frontend quality improvements** (PRP frontend_quality_check)
+- **Multi-agent system optimization**
+
+---
+
+**Remember**: SOLEil is a production-ready platform. Always maintain code quality, follow the modular architecture, and work within your assigned module boundaries. When in doubt, refer to the module's `MODULE.md` file and the `AGENT_GUIDE.md` for guidance.

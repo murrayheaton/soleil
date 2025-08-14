@@ -85,7 +85,9 @@
       "Bash(echo:*)",
       "Bash(ssh:*)",
       "Bash(/Users/murrayheaton/Documents/GitHub/soleil/add_ssh_key.sh:*)",
-      "Bash(/Users/murrayheaton/Documents/GitHub/soleil/ssh_auto_add.exp:*)"
+      "Bash(/Users/murrayheaton/Documents/GitHub/soleil/ssh_auto_add.exp:*)",
+      "Bash(/tmp/ssh_deploy.sh)",
+      "Bash(expect:*)"
     ],
     "deny": []
   }
