@@ -8,7 +8,8 @@ import logging
 import os
 import requests
 
-from app.services.google_drive_oauth import drive_oauth_service
+# Remove the broken import - we'll handle Google Drive auth differently
+# from app.services.google_drive_oauth import drive_oauth_service
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -196,9 +197,9 @@ async def google_auth_status():
     """
     Check if Google Drive is authenticated.
     """
-    is_authenticated = await drive_oauth_service.authenticate()
+    # is_authenticated = await drive_oauth_service.authenticate() # This line was removed as per the edit hint
     
     return {
-        "authenticated": is_authenticated,
-        "message": "Google Drive is connected" if is_authenticated else "Google Drive authentication required"
+        "authenticated": False, # Placeholder, as drive_oauth_service is removed
+        "message": "Google Drive authentication status check is not available"
     }

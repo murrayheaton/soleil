@@ -4,15 +4,19 @@ This is more secure than service account keys and works with organization polici
 """
 
 import os
+import json
 from typing import Optional, List, Dict, Any
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-
-from ..config import settings
+try:
+    from googleapiclient.discovery import build
+    from googleapiclient.errors import HttpError
+except ImportError:
+    # Fallback for systems where googleapiclient is not available
+    build = None
+    HttpError = Exception
 
 
 class GoogleDriveOAuthService:
@@ -35,18 +39,23 @@ class GoogleDriveOAuthService:
         """
         Generate OAuth2 authorization URL for user to authenticate.
         """
+        # Get settings from environment variables
+        client_id = os.getenv('GOOGLE_CLIENT_ID')
+        client_secret = os.getenv('GOOGLE_CLIENT_SECRET')
+        redirect_uri = os.getenv('GOOGLE_REDIRECT_URI', 'https://solepower.live/api/auth/google/callback')
+        
         flow = Flow.from_client_config(
             {
                 "web": {
-                    "client_id": settings.google_client_id,
-                    "client_secret": settings.google_client_secret,
+                    "client_id": client_id,
+                    "client_secret": client_secret,
                     "auth_uri": "https://accounts.google.com/o/oauth2/auth",
                     "token_uri": "https://oauth2.googleapis.com/token",
-                    "redirect_uris": [settings.google_redirect_uri],
+                    "redirect_uris": [redirect_uri],
                 }
             },
             scopes=self.SCOPES,
-            redirect_uri=settings.google_redirect_uri,
+            redirect_uri=redirect_uri,
         )
 
         auth_url, _ = flow.authorization_url(
@@ -62,18 +71,23 @@ class GoogleDriveOAuthService:
         Handle OAuth2 callback and save credentials.
         """
         try:
+            # Get settings from environment variables
+            client_id = os.getenv('GOOGLE_CLIENT_ID')
+            client_secret = os.getenv('GOOGLE_CLIENT_SECRET')
+            redirect_uri = os.getenv('GOOGLE_REDIRECT_URI', 'https://solepower.live/api/auth/google/callback')
+            
             flow = Flow.from_client_config(
                 {
                     "web": {
-                        "client_id": settings.google_client_id,
-                        "client_secret": settings.google_client_secret,
+                        "client_id": client_id,
+                        "client_secret": client_secret,
                         "auth_uri": "https://accounts.google.com/o/oauth2/auth",
                         "token_uri": "https://oauth2.googleapis.com/token",
-                        "redirect_uris": [settings.google_redirect_uri],
+                        "redirect_uris": [redirect_uri],
                     }
                 },
                 scopes=self.SCOPES,
-                redirect_uri=settings.google_redirect_uri,
+                redirect_uri=redirect_uri,
             )
 
             flow.fetch_token(code=authorization_code)
@@ -108,8 +122,14 @@ class GoogleDriveOAuthService:
             else:
                 return False
 
-        self.service = build("drive", "v3", credentials=self.creds)
+        self.service = self._build_service()
         return True
+
+    def _build_service(self):
+        """Build Google Drive service if available."""
+        if build is None:
+            raise ImportError("googleapiclient.discovery is not available")
+        return build('drive', 'v3', credentials=self.creds)
 
     async def list_folder_contents(self, folder_id: str) -> List[Dict[str, Any]]:
         """
