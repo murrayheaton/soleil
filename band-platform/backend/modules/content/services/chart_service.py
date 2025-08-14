@@ -19,7 +19,6 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
 from app.services.google_drive import GoogleDriveService, DriveAPIError, AuthenticationError
-from app.services.google_drive_oauth import drive_oauth_service
 from app.config import settings
 
 from io import BytesIO
@@ -45,13 +44,17 @@ class ChartService:
     async def _get_drive_service(self) -> GoogleDriveService:
         """Get authenticated Google Drive service."""
         if not self.drive_service:
-            # Try to authenticate using saved credentials
-            authenticated = await drive_oauth_service.authenticate()
-            if not authenticated:
-                raise Exception(f"Google Drive authentication required for user {self.user_email}. Please authenticate first.")
+            # For now, we'll skip authentication until we fix the import issues
+            # TODO: Implement proper authentication flow
+            raise Exception(f"Google Drive authentication not yet implemented. Please use the drive module endpoints instead.")
             
-            # Create authenticated GoogleDriveService
-            self.drive_service = GoogleDriveService(credentials=drive_oauth_service.creds)
+            # Original code commented out:
+            # authenticated = await drive_oauth_service.authenticate()
+            # if not authenticated:
+            #     raise Exception(f"Google Drive authentication required for user {self.user_email}. Please authenticate first.")
+            
+            # # Create authenticated GoogleDriveService
+            # self.drive_service = GoogleDriveService(credentials=drive_oauth_service.creds)
         
         return self.drive_service
     
