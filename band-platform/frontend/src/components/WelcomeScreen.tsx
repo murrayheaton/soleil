@@ -12,25 +12,28 @@ interface WelcomeScreenProps {
 }
 
 const INSTRUMENTS = [
-  { value: 'alto_sax', label: 'Alto Saxophone', emoji: '🎷' },
-  { value: 'tenor_sax', label: 'Tenor Saxophone', emoji: '🎷' },
-  { value: 'soprano_sax', label: 'Soprano Saxophone', emoji: '🎷' },
-  { value: 'baritone_sax', label: 'Baritone Saxophone', emoji: '🎷' },
+  // Bb instruments
   { value: 'trumpet', label: 'Trumpet', emoji: '🎺' },
-  { value: 'flugelhorn', label: 'Flugelhorn', emoji: '🎺' },
+  { value: 'tenor_sax', label: 'Tenor Saxophone', emoji: '🎷' },
+  
+  // Eb instruments
+  { value: 'alto_sax', label: 'Alto Saxophone', emoji: '🎷' },
+  { value: 'bari_sax', label: 'Baritone Saxophone', emoji: '🎷' },
+  
+  // Concert pitch
+  { value: 'violin', label: 'Violin', emoji: '🎻' },
+  
+  // Bass clef
   { value: 'trombone', label: 'Trombone', emoji: '🎺' },
-  { value: 'euphonium', label: 'Euphonium', emoji: '🎺' },
-  { value: 'tuba', label: 'Tuba', emoji: '🎺' },
-  { value: 'flute', label: 'Flute', emoji: '🎵' },
-  { value: 'clarinet', label: 'Clarinet', emoji: '🎵' },
-  { value: 'oboe', label: 'Oboe', emoji: '🎵' },
-  { value: 'bassoon', label: 'Bassoon', emoji: '🎵' },
+  
+  // Chords (rhythm section)
+  { value: 'piano', label: 'Piano/Keys', emoji: '🎹' },
   { value: 'guitar', label: 'Guitar', emoji: '🎸' },
-  { value: 'bass', label: 'Bass Guitar', emoji: '🎸' },
-  { value: 'piano', label: 'Piano', emoji: '🎹' },
+  { value: 'bass', label: 'Bass', emoji: '🎸' },
   { value: 'drums', label: 'Drums', emoji: '🥁' },
-  { value: 'vocals', label: 'Vocals', emoji: '🎤' },
-  { value: 'other', label: 'Other Instrument', emoji: '🎵' }
+  
+  // Lyrics
+  { value: 'singer', label: 'Singer/Vocals', emoji: '🎤' }
 ];
 
 export default function WelcomeScreen({ userData }: WelcomeScreenProps) {
@@ -67,7 +70,10 @@ export default function WelcomeScreen({ userData }: WelcomeScreenProps) {
         transposition: getTransposition(selectedInstrument)
       };
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/profile/profile`, {
+      console.log('Submitting profile data:', profileData);
+      
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live/api';
+      const response = await fetch(`${apiUrl}/profile/profile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,17 +82,29 @@ export default function WelcomeScreen({ userData }: WelcomeScreenProps) {
         body: JSON.stringify(profileData),
       });
 
+      console.log('Profile response status:', response.status);
+      
       if (response.ok) {
+        const result = await response.json();
+        console.log('Profile saved successfully:', result);
+        
         // Set profile complete cookie
         document.cookie = 'soleil_profile_complete=true; path=/; max-age=86400';
         document.cookie = 'soleil_auth=true; path=/; max-age=86400';
         
-        // Redirect to dashboard
-        router.push('/dashboard');
+        // Redirect to repertoire page instead of dashboard
+        router.push('/repertoire');
       } else {
         const errorText = await response.text();
         console.error('Profile save failed:', response.status, errorText);
-        alert('Something went wrong. Please try again.');
+        
+        // Parse error message if it's JSON
+        try {
+          const errorJson = JSON.parse(errorText);
+          alert(`Error: ${errorJson.detail || errorJson.message || 'Something went wrong'}`);
+        } catch {
+          alert(`Error: ${errorText || 'Something went wrong. Please try again.'}`);
+        }
       }
     } catch (error) {
       console.error('Profile save error:', error);
@@ -98,27 +116,30 @@ export default function WelcomeScreen({ userData }: WelcomeScreenProps) {
 
   const getTransposition = (instrument: string): string => {
     const transpositions: { [key: string]: string } = {
-      'alto_sax': 'E♭',
-      'tenor_sax': 'B♭',
-      'soprano_sax': 'B♭',
-      'baritone_sax': 'E♭',
-      'trumpet': 'B♭',
-      'flugelhorn': 'B♭',
-      'trombone': 'C',
-      'euphonium': 'C',
-      'tuba': 'C',
-      'flute': 'C',
-      'clarinet': 'B♭',
-      'oboe': 'C',
-      'bassoon': 'C',
-      'guitar': 'C',
-      'bass': 'C',
-      'piano': 'C',
-      'drums': 'C',
-      'vocals': 'C',
-      'other': 'C'
+      // Bb instruments
+      'trumpet': 'Bb',
+      'tenor_sax': 'Bb',
+      
+      // Eb instruments
+      'alto_sax': 'Eb',
+      'bari_sax': 'Eb',
+      
+      // Concert pitch
+      'violin': 'Concert',
+      
+      // Bass clef
+      'trombone': 'BassClef',
+      
+      // Chords (rhythm section)
+      'piano': 'Chords',
+      'guitar': 'Chords',
+      'bass': 'Chords',
+      'drums': 'Chords',
+      
+      // Lyrics
+      'singer': 'Lyrics'
     };
-    return transpositions[instrument] || 'C';
+    return transpositions[instrument] || 'Concert';
   };
 
   return (

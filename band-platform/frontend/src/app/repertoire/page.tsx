@@ -35,7 +35,8 @@ export default function RepertoirePage() {
 
   const fetchProfile = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/profile/profile`);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live/api';
+      const response = await fetch(`${apiUrl}/profile/profile`);
       const data = await response.json();
       
       if (data.status === 'success') {

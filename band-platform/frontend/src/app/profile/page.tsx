@@ -34,7 +34,8 @@ function ProfileContent() {
     setError(null);
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/profile/profile`);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live/api';
+      const response = await fetch(`${apiUrl}/profile/profile`);
       const data = await response.json();
       
       // Profile API response received
@@ -54,7 +55,7 @@ function ProfileContent() {
         
         // Try to get Google user data from session
         try {
-          const sessionResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/auth/session`);
+          const sessionResponse = await fetch(`${apiUrl}/auth/session`);
           if (sessionResponse.ok) {
             const sessionData = await sessionResponse.json();
             setGoogleUserData({
@@ -116,7 +117,8 @@ function ProfileContent() {
 
   const updateProfile = async (updatedProfile: Partial<UserProfile>) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live'}/api/profile/profile`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://solepower.live/api';
+      const response = await fetch(`${apiUrl}/profile/profile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
