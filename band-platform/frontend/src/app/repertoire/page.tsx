@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { 
   DocumentTextIcon, 
   MusicalNoteIcon,
@@ -13,7 +14,11 @@ import {
 import Link from 'next/link';
 import { apiService } from '@/lib/api';
 import type { Chart, ChartListResponse } from '@/lib/api';
-import ChartViewer from '@/components/ChartViewer';
+
+const ChartViewer = dynamic(() => import('@/components/ChartViewer'), {
+  ssr: false,
+  loading: () => <div className="flex items-center justify-center h-full">Loading chart viewer...</div>
+});
 
 interface UserProfile {
   email: string;

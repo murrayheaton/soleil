@@ -16,8 +16,10 @@ import { offlineStorage } from '@/lib/database';
 import { apiService, AuthenticationError } from '@/lib/api';
 import type { Chart } from '@/lib/api';
 
-// Configure PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+// Configure PDF.js worker - only on client side
+if (typeof window !== 'undefined') {
+  pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+}
 
 interface ChartViewerProps {
   chart: Chart;
