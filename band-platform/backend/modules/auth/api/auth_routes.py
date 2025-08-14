@@ -201,3 +201,9 @@ async def profile_complete(response: Response):
     )
     return {"status": "profile marked complete"}
 
+
+@router.get("/test")
+async def test_endpoint():
+    """Test endpoint to verify routing is working."""
+    return {"message": "Auth routing is working!", "status": "success"}
+

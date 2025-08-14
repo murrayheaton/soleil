@@ -1,10 +1,10 @@
 # PRP 01: Fix Basic Chart Viewing and Google Drive Integration
 
 ## 🎯 **Objective**
-Fix the core chart viewing functionality so bands can actually see and use their charts from Google Drive. This is blocking the primary user experience.
+Fix the core chart viewing functionality so band members can actually see and use their charts from the band's Google Drive. This is blocking the primary user experience.
 
 ## 🚨 **Priority: CRITICAL**
-This is blocking core functionality - bands need to see their charts to perform live.
+This is blocking core functionality - band members need to see their charts to perform live.
 
 ## 📋 **Requirements**
 1. **Backend API Implementation**: Connect Google Drive services to chart endpoints
