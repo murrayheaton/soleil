@@ -95,9 +95,24 @@ class GoogleDriveOAuthService:
         Load saved credentials or return False if authentication needed.
         """
         if os.path.exists(self.token_file):
-            self.creds = Credentials.from_authorized_user_file(
-                self.token_file, self.SCOPES
-            )
+            # Try to load the token file
+            try:
+                import json
+                with open(self.token_file, 'r') as f:
+                    token_data = json.load(f)
+                
+                # Create credentials from the saved token data
+                self.creds = Credentials(
+                    token=token_data.get('token'),
+                    refresh_token=token_data.get('refresh_token'),
+                    token_uri=token_data.get('token_uri', 'https://oauth2.googleapis.com/token'),
+                    client_id=token_data.get('client_id'),
+                    client_secret=token_data.get('client_secret'),
+                    scopes=token_data.get('scopes', self.SCOPES)
+                )
+            except Exception as e:
+                print(f"Error loading token file: {e}")
+                return False
 
         if not self.creds or not self.creds.valid:
             if self.creds and self.creds.expired and self.creds.refresh_token:
