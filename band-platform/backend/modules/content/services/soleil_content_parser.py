@@ -255,6 +255,9 @@ class SOLEILContentParser:
         # Parse the standard SOLEIL format: SongName_Transposition
         title, transposition = self._parse_standard_format(name_without_ext)
         
+        # Detect suffix if any
+        suffix = self._detect_suffix(filename)
+        
         # Clean and validate extracted data
         song_title = self.title_converter.convert(title)
         key = self._validate_key(transposition)

@@ -317,7 +317,7 @@ class ChartService:
             logger.error(f"Failed to get chart folders: {e}")
             raise
     
-    async def _get_folders_with_charts(self, drive_service: DriveClient, folder_id: str, path: str = "") -> List[dict]:
+    async def _get_folders_with_charts(self, drive_service, folder_id: str, path: str = "") -> List[dict]:
         """Recursively find all folders that contain chart files."""
         folders_with_charts = []
         
@@ -373,7 +373,7 @@ class ChartService:
             
         return folders_with_charts
     
-    async def _get_folder_name(self, drive_service: DriveClient, folder_id: str) -> str:
+    async def _get_folder_name(self, drive_service, folder_id: str) -> str:
         """Get the name of a folder by its ID."""
         try:
             if folder_id == await self._get_master_folder():
